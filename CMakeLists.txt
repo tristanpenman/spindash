@@ -188,7 +188,7 @@ if(WIN32)
 endif()
 
 if (WIN32)
-    add_executable(Chaos ${PROJECT_SOURCES} "${CMAKE_CURRENT_SOURCE_DIR}/res/Chaos.rc")
+    add_executable(Chaos WIN32 ${PROJECT_SOURCES} "${CMAKE_CURRENT_SOURCE_DIR}/res/Chaos.rc")
 elseif (APPLE)
     set(MACOSX_BUNDLE_ICON_FILE "Chaos.icns")
 
