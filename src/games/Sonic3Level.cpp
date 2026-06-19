@@ -60,6 +60,15 @@ const Pattern& Sonic3Level::getPattern(size_t index) const
   return m_patterns[index];
 }
 
+Pattern& Sonic3Level::getPattern(size_t index)
+{
+  if (index >= m_patternCount) {
+    throw runtime_error("Invalid pattern index");
+  }
+
+  return m_patterns[index];
+}
+
 const Chunk& Sonic3Level::getChunk(size_t index) const
 {
   if (index >= m_chunkCount) {

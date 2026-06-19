@@ -33,6 +33,7 @@ public:
   void zoomOut();
 
   void drawToImage(QImage &image);
+  void refreshBlocks();
 
   int getWidth() const;
   int getHeight() const;

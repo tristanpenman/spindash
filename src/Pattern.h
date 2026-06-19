@@ -26,6 +26,7 @@ public:
   Pattern();
 
   void fromSegaFormat(uint8_t bytes[PATTERN_SIZE_IN_ROM]);
+  void toSegaFormat(uint8_t bytes[PATTERN_SIZE_IN_ROM]) const;
 
   uint8_t getPixel(uint8_t x, uint8_t y) const;
   void setPixel(uint8_t x, uint8_t y, uint8_t value);

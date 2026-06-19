@@ -18,6 +18,7 @@ public:
 
   virtual size_t getPatternCount() const = 0;
   virtual const Pattern& getPattern(size_t index) const = 0;
+  virtual Pattern& getPattern(size_t index) = 0;
 
   virtual size_t getChunkCount() const = 0;
   virtual const Chunk& getChunk(size_t index) const = 0;

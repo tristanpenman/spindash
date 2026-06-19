@@ -2,10 +2,13 @@
 #include "../KosinskiWriter.h"
 #include "../Logger.h"
 #include "../Map.h"
+#include "../Pattern.h"
 #include "../Rom.h"
 
 #include "Sonic2.h"
 #include "Sonic2Level.h"
+
+#include <QBuffer>
 
 #undef LOG
 #define LOG Logger("Sonic2")
@@ -189,7 +192,9 @@ bool Sonic2::relocateLevels(bool unsafe)
 bool Sonic2::save(unsigned int levelIdx, Level& level)
 {
   auto tilesAddr = getTilesAddr(levelIdx);
-  optional<size_t> limit;
+  auto patternsAddr = getPatternsAddr(levelIdx);
+  optional<size_t> mapLimit;
+  optional<size_t> patternLimit;
   auto& file = m_rom->getFile();
 
   // if levels have not been relocated, check how much space we have
@@ -206,8 +211,37 @@ bool Sonic2::save(unsigned int levelIdx, Level& level)
       return false;
     }
 
-    limit = size_t(file.pos()) - tilesAddr;
-    LOG() << "Total space available is " << *limit << " bytes";
+    mapLimit = size_t(file.pos()) - tilesAddr;
+    LOG() << "Total space available is " << *mapLimit << " bytes";
+  }
+
+  {
+    std::vector<uint8_t> buffer(0xFFFF);
+    KosinskiReader reader;
+    file.seek(patternsAddr);
+    auto result = reader.decompress(file, buffer.data(), buffer.size());
+    if (!result.first) {
+      LOG() << "Failed to fully extract existing patterns at location 0x" << hex << patternsAddr;
+      return false;
+    }
+
+    patternLimit = size_t(file.pos()) - patternsAddr;
+    LOG() << "Total pattern space available is " << *patternLimit << " bytes";
+  }
+
+  vector<uint8_t> patternData(level.getPatternCount() * Pattern::PATTERN_SIZE_IN_ROM);
+  for (size_t i = 0; i < level.getPatternCount(); i++) {
+    level.getPattern(i).toSegaFormat(&patternData[i * Pattern::PATTERN_SIZE_IN_ROM]);
+  }
+
+  QByteArray compressedPatterns;
+  QBuffer patternBuffer(&compressedPatterns);
+  patternBuffer.open(QIODevice::WriteOnly);
+  KosinskiWriter patternWriter;
+  auto patternResult = patternWriter.compress(patternBuffer, patternData.data(), patternData.size(), patternLimit);
+  if (!patternResult.first) {
+    LOG() << "Failed to write pattern data at location 0x" << hex << patternsAddr << "; not enough space";
+    return false;
   }
 
   auto& map = level.getMap();
@@ -216,13 +250,17 @@ bool Sonic2::save(unsigned int levelIdx, Level& level)
 
   KosinskiWriter writer;
   file.seek(tilesAddr);
-  auto result = writer.compress(file, data, dataSize, limit);
+  auto result = writer.compress(file, data, dataSize, mapLimit);
   if (!result.first) {
     LOG() << "Failed to write level data at location 0x" << hex << tilesAddr << "; not enough space";
     return false;
   }
 
   LOG() << "Wrote " << result.second << " bytes to location 0x" << hex << tilesAddr;
+
+  file.seek(patternsAddr);
+  file.write(compressedPatterns);
+  LOG() << "Wrote " << patternResult.second << " pattern bytes to location 0x" << hex << patternsAddr;
 
   LOG() << "Updating checksum...";
   m_rom->writeChecksum(m_rom->calculateChecksum());

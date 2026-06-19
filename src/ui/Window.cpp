@@ -25,6 +25,7 @@
 #include "LevelSelect.h"
 #include "MapEditor.h"
 #include "PaletteInspector.h"
+#include "PatternEditor.h"
 #include "PatternInspector.h"
 #include "RomInfo.h"
 
@@ -51,6 +52,7 @@ Window::Window()
   , m_exportPngAction(nullptr)
   , m_undoAction(nullptr)
   , m_redoAction(nullptr)
+  , m_patternEditorAction(nullptr)
   , m_actualSizeAction(nullptr)
   , m_zoomInAction(nullptr)
   , m_zoomOutAction(nullptr)
@@ -296,6 +298,17 @@ void Window::redo()
   m_mapEditor->redo();
 }
 
+void Window::showPatternEditor()
+{
+  if (!m_level) {
+    return;
+  }
+
+  PatternEditor editor(this, m_level);
+  connect(&editor, SIGNAL(patternModified()), this, SLOT(patternModified()));
+  editor.exec();
+}
+
 void Window::actualSize()
 {
   if (!m_mapEditor) {
@@ -452,6 +465,7 @@ void Window::levelSelected(int levelIdx)
 
   m_exportBinaryAction->setEnabled(true);
   m_exportPngAction->setEnabled(true);
+  m_patternEditorAction->setEnabled(true);
 
   m_inspectorsMenu->setEnabled(true);
   m_romInfoAction->setEnabled(true);
@@ -493,6 +507,14 @@ void Window::undosRedosChanged(size_t undos, size_t redos)
 
 void Window::mapModified()
 {
+  m_hasUnsavedChanges = true;
+}
+
+void Window::patternModified()
+{
+  if (m_mapEditor) {
+    m_mapEditor->refreshBlocks();
+  }
   m_hasUnsavedChanges = true;
 }
 
@@ -610,8 +632,14 @@ void Window::createEditMenu()
   m_redoAction->setDisabled(true);
   connect(m_redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 
+  m_patternEditorAction = new QAction(tr("Pattern Editor..."));
+  m_patternEditorAction->setDisabled(true);
+  connect(m_patternEditorAction, SIGNAL(triggered()), this, SLOT(showPatternEditor()));
+
   editMenu->addAction(m_undoAction);
   editMenu->addAction(m_redoAction);
+  editMenu->addSeparator();
+  editMenu->addAction(m_patternEditorAction);
 }
 
 void Window::createViewMenu()

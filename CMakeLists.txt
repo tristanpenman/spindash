@@ -91,6 +91,8 @@ set(PROJECT_SOURCES
     src/ui/MapEditor.h
     src/ui/PaletteInspector.cpp
     src/ui/PaletteInspector.h
+    src/ui/PatternEditor.cpp
+    src/ui/PatternEditor.h
     src/ui/PatternInspector.cpp
     src/ui/PatternInspector.h
     src/ui/Rectangle.h

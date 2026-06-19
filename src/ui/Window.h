@@ -56,6 +56,9 @@ public slots:
   void showChunkInspector();
   void showBlockInspector();
 
+  // edit
+  void showPatternEditor();
+
   // tools
   void showRomInfo();
   void relocateLevels();
@@ -69,6 +72,7 @@ private slots:
   void noTile();
   void undosRedosChanged(size_t undos, size_t redos);
   void mapModified();
+  void patternModified();
 
 private:
   bool trySaveRom();
@@ -101,6 +105,7 @@ private:
   QAction* m_exportPngAction;
   QAction* m_undoAction;
   QAction* m_redoAction;
+  QAction* m_patternEditorAction;
   QAction* m_actualSizeAction;
   QAction* m_zoomInAction;
   QAction* m_zoomOutAction;

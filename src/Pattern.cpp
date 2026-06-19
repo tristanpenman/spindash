@@ -21,6 +21,18 @@ void Pattern::fromSegaFormat(uint8_t buffer[PATTERN_SIZE_IN_ROM])
   }
 }
 
+void Pattern::toSegaFormat(uint8_t buffer[PATTERN_SIZE_IN_ROM]) const
+{
+  uint8_t bufferPos = 0;
+  for (uint8_t row = 0; row < PATTERN_HEIGHT; row++) {
+    for (uint8_t col = 0; col < PATTERN_WIDTH; col += 2) {
+      buffer[bufferPos] = static_cast<uint8_t>((m_pixels[row * PATTERN_WIDTH + col] << 4)
+          | (m_pixels[row * PATTERN_WIDTH + col + 1] & 0x0F));
+      bufferPos++;
+    }
+  }
+}
+
 uint8_t Pattern::getPixel(uint8_t x, uint8_t y) const
 {
   return m_pixels[y * PATTERN_WIDTH + x];

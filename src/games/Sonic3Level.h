@@ -27,6 +27,7 @@ public:
 
   size_t getPatternCount() const override;
   const Pattern& getPattern(size_t index) const override;
+  Pattern& getPattern(size_t index) override;
 
   size_t getChunkCount() const override;
   const Chunk& getChunk(size_t index) const override;

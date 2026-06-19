@@ -158,6 +158,22 @@ void MapEditor::drawToImage(QImage &image)
   m_scene->render(&painter);
 }
 
+void MapEditor::refreshBlocks()
+{
+  const size_t blockCount = m_level->getBlockCount();
+  for (size_t i = 0; i < blockCount; i++) {
+    drawBlock(*m_blocks[i], i);
+  }
+
+  const auto& map = m_level->getMap();
+  for (int y = 0; y < map.getHeight(); y++) {
+    for (int x = 0; x < map.getWidth(); x++) {
+      const auto offset = static_cast<size_t>(y) * static_cast<size_t>(map.getWidth()) + static_cast<size_t>(x);
+      m_tiles[offset]->setPixmap(*m_blocks[map.getValue(0, x, y)]);
+    }
+  }
+}
+
 int MapEditor::getWidth() const
 {
   return m_level->getMap().getWidth() * Block::BLOCK_WIDTH;
