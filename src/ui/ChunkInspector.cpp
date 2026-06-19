@@ -117,3 +117,8 @@ void ChunkInspector::drawChunks()
     LOG() << "Failed to copy image to pixmap";
   }
 }
+
+void ChunkInspector::refresh()
+{
+  drawChunks();
+}

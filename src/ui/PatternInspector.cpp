@@ -26,6 +26,7 @@ PatternInspector::PatternInspector(QWidget* parent, shared_ptr<Level>& level)
   : QDialog(parent)
   , m_level(level)
   , m_pixmap(nullptr)
+  , m_paletteIndex(0)
 {
   const auto patternCount = level->getPatternCount();
   const int pixmapHeight = ceilf(static_cast<float>(patternCount) / PATTERNS_PER_ROW) * Pattern::PATTERN_HEIGHT;
@@ -100,5 +101,11 @@ void PatternInspector::drawPatterns(size_t paletteIndex)
 
 void PatternInspector::paletteChanged(int paletteIndex)
 {
+  m_paletteIndex = static_cast<size_t>(paletteIndex);
   drawPatterns(paletteIndex);
+}
+
+void PatternInspector::refresh()
+{
+  drawPatterns(m_paletteIndex);
 }

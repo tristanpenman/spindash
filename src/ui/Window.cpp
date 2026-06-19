@@ -512,6 +512,15 @@ void Window::mapModified()
 
 void Window::patternModified()
 {
+  if (m_patternInspector) {
+    m_patternInspector->refresh();
+  }
+  if (m_chunkInspector) {
+    m_chunkInspector->refresh();
+  }
+  if (m_blockInspector) {
+    m_blockInspector->refresh();
+  }
   if (m_mapEditor) {
     m_mapEditor->refreshBlocks();
   }

@@ -19,6 +19,7 @@ using namespace std;
 BlockInspector::BlockInspector(QWidget* parent, shared_ptr<Level>& level)
   : QDialog(parent)
   , m_level(level)
+  , m_blockIndex(0)
 {
   QVBoxLayout* vbox = new QVBoxLayout();
   vbox->setContentsMargins(8, 8, 8, 8);
@@ -124,5 +125,11 @@ void BlockInspector::drawBlock(size_t index)
 
 void BlockInspector::blockChanged(int index)
 {
+  m_blockIndex = static_cast<size_t>(index);
   drawBlock(index);
+}
+
+void BlockInspector::refresh()
+{
+  drawBlock(m_blockIndex);
 }
