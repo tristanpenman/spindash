@@ -200,7 +200,7 @@ void Window::showOpenRomDialog()
 
   QFileDialog dialog(this, tr("Open ROM"), QString(), tr("ROM Files (*.bin)"));
   dialog.setFileMode(QFileDialog::ExistingFile);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0) && !defined(Q_OS_WIN)
   dialog.setOption(QFileDialog::DontUseNativeDialog, true);
 #endif
   if (!dialog.exec()) {
@@ -252,7 +252,7 @@ void Window::showExportBinaryDialog()
 
   QFileDialog dialog(this, tr("Export Binary"), QString(), tr("Binary Files (*.bin)"));
   dialog.setAcceptMode(QFileDialog::AcceptSave);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0) && !defined(Q_OS_WIN)
   dialog.setOption(QFileDialog::DontUseNativeDialog, true);
 #endif
   if (!dialog.exec()) {
@@ -274,7 +274,7 @@ void Window::showExportPngDialog()
 
   QFileDialog dialog(this, tr("Export PNG"), QString(), tr("PNG Files (*.png)"));
   dialog.setAcceptMode(QFileDialog::AcceptSave);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0) && !defined(Q_OS_WIN)
   dialog.setOption(QFileDialog::DontUseNativeDialog, true);
 #endif
   if (!dialog.exec()) {
