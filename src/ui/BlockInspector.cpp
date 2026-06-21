@@ -1,9 +1,13 @@
-#include <QComboBox>
+#include <cmath>
+#include <iostream>
+
+#include <QHBoxLayout>
+#include <QImage>
 #include <QLabel>
+#include <QPixmap>
 #include <QVBoxLayout>
 
 #include "../Block.h"
-#include "../Chunk.h"
 #include "../Level.h"
 #include "../Logger.h"
 #include "../Palette.h"
@@ -16,36 +20,33 @@
 
 using namespace std;
 
+static constexpr int PIXMAP_WIDTH = 320;
+static constexpr int BLOCKS_PER_ROW = PIXMAP_WIDTH / Block::BLOCK_WIDTH;
+
 BlockInspector::BlockInspector(QWidget* parent, shared_ptr<Level>& level)
   : QDialog(parent)
   , m_level(level)
-  , m_blockIndex(0)
+  , m_pixmap(nullptr)
 {
+  const auto blockCount = level->getBlockCount();
+  const int pixmapHeight = ceilf(static_cast<float>(blockCount) / BLOCKS_PER_ROW) * Block::BLOCK_HEIGHT;
+
+  // main layout
   QVBoxLayout* vbox = new QVBoxLayout();
   vbox->setContentsMargins(8, 8, 8, 8);
+  vbox->setSizeConstraint(QLayout::SetFixedSize);
   setLayout(vbox);
-
-  // block selector
-  QComboBox* blockCombo = new QComboBox();
-  vbox->addWidget(blockCombo);
-  for (size_t i = 0; i < m_level->getBlockCount(); i++) {
-    const QString paletteName = QString("Block %1").arg(i);
-    blockCombo->addItem(paletteName, QVariant::fromValue(i));
-  }
 
   // create widget to display pixmap
   m_label = new QLabel();
-  m_label->setFixedSize(Block::BLOCK_WIDTH, Block::BLOCK_HEIGHT);
-  m_label->setMinimumWidth(Block::BLOCK_WIDTH);
+  m_label->setFixedSize(PIXMAP_WIDTH, pixmapHeight);
+  m_label->setMinimumWidth(PIXMAP_WIDTH);
   vbox->addWidget(m_label);
 
   // create pixmap
-  m_pixmap = new QPixmap(Block::BLOCK_WIDTH, Block::BLOCK_HEIGHT);
+  m_pixmap = new QPixmap(PIXMAP_WIDTH, pixmapHeight);
   m_label->setPixmap(*m_pixmap);
-  drawBlock(0);
-
-  // handle switching blocks
-  connect(blockCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(blockChanged(int)));
+  drawBlocks();
 }
 
 void BlockInspector::drawPattern(QImage& image,
@@ -69,11 +70,11 @@ void BlockInspector::drawPattern(QImage& image,
   }
 }
 
-void BlockInspector::drawChunk(QImage& image, const Chunk& chunk, int dx, int dy, bool hFlip, bool vFlip)
+void BlockInspector::drawBlock(QImage& image, const Block& block, int dx, int dy)
 {
   for (int py = 0; py < 2; py++) {
     for (int px = 0; px < 2; px++) {
-      const auto& patternDesc = chunk.getPatternDesc(hFlip ? 1 - px : px, vFlip ? 1 - py : py);
+      const auto& patternDesc = block.getPatternDesc(px, py);
 
       const auto paletteIndex = patternDesc.getPaletteIndex();
       const auto patternIndex = patternDesc.getPatternIndex();
@@ -86,36 +87,30 @@ void BlockInspector::drawChunk(QImage& image, const Chunk& chunk, int dx, int dy
                   palette,
                   dx + px * Pattern::PATTERN_WIDTH,
                   dy + py * Pattern::PATTERN_HEIGHT,
-                  patternDesc.getHFlip() ^ hFlip,
-                  patternDesc.getVFlip() ^ vFlip);
+                  patternDesc.getHFlip(),
+                  patternDesc.getVFlip());
     }
   }
 }
 
-void BlockInspector::drawBlock(size_t index)
+void BlockInspector::drawBlocks()
 {
-  LOG() << "Drawing block " << index;
+  LOG() << "Drawing blocks";
 
-  const Block& block = m_level->getBlock(index);
+  // image to draw to
+  QImage image(m_pixmap->width(), m_pixmap->height(), QImage::Format_RGB888);
+  image.fill(qRgb(0, 0, 0));
 
-  QImage image(Block::BLOCK_WIDTH, Block::BLOCK_HEIGHT, QImage::Format_RGB888);
-  image.fill(0);
+  // draw individual blocks
+  for (size_t i = 0; i < m_level->getBlockCount(); i++) {
+    const auto row = static_cast<int>(i / BLOCKS_PER_ROW);
+    const auto col = static_cast<int>(i % BLOCKS_PER_ROW);
 
-  for (int dy = 0; dy < 8; dy++) {
-    for (int dx = 0; dx < 8; dx++) {
-      const auto& chunkDesc = block.getChunkDesc(dx, dy);
-      const auto chunkIndex = chunkDesc.getChunkIndex();
-      try {
-        const auto& chunk = m_level->getChunk(chunkIndex);
-        drawChunk(image, chunk, dx * 16, dy * 16, chunkDesc.getHFlip(), chunkDesc.getVFlip());
-      } catch (const exception& e) {
-        LOG() << "Failed to draw chunk " << chunkIndex << ": " << e.what();
-      }
-    }
+    drawBlock(image, m_level->getBlock(i), col * Block::BLOCK_WIDTH, row * Block::BLOCK_HEIGHT);
   }
 
   // copy to pixmap
-  LOG() << "Copying block image to pixmap";
+  LOG() << "Copying pattern image to pixmap";
   if (m_pixmap->convertFromImage(image)) {
     m_label->setPixmap(*m_pixmap);
   } else {
@@ -123,13 +118,7 @@ void BlockInspector::drawBlock(size_t index)
   }
 }
 
-void BlockInspector::blockChanged(int index)
-{
-  m_blockIndex = static_cast<size_t>(index);
-  drawBlock(index);
-}
-
 void BlockInspector::refresh()
 {
-  drawBlock(m_blockIndex);
+  drawBlocks();
 }

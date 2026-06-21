@@ -47,12 +47,12 @@ FetchContent_MakeAvailable(googletest)
 
 set(PROJECT_SOURCES
     src/main.cpp
-    src/Block.cpp
-    src/Block.h
-    src/Command.h
     src/Chunk.cpp
     src/Chunk.h
-    src/ChunkDesc.h
+    src/Command.h
+    src/Block.cpp
+    src/Block.h
+    src/BlockDesc.h
     src/Game.h
     src/GameFactory.cpp
     src/GameFactory.h
@@ -82,12 +82,12 @@ set(PROJECT_SOURCES
     src/games/Sonic3.h
     src/games/Sonic3Level.cpp
     src/games/Sonic3Level.h
-    src/ui/BlockInspector.cpp
-    src/ui/BlockInspector.h
-    src/ui/BlockSelector.cpp
-    src/ui/BlockSelector.h
     src/ui/ChunkInspector.cpp
     src/ui/ChunkInspector.h
+    src/ui/ChunkSelector.cpp
+    src/ui/ChunkSelector.h
+    src/ui/BlockInspector.cpp
+    src/ui/BlockInspector.h
     src/ui/LevelSelect.cpp
     src/ui/LevelSelect.h
     src/ui/MapEditor.cpp
@@ -101,8 +101,8 @@ set(PROJECT_SOURCES
     src/ui/Rectangle.h
     src/ui/RomInfo.cpp
     src/ui/RomInfo.h
-    src/ui/TileEditor.cpp
-    src/ui/TileEditor.h
+    src/ui/ChunkEditor.cpp
+    src/ui/ChunkEditor.h
     src/ui/Window.cpp
     src/ui/Window.h
     src/ui/ZoomSupport.cpp

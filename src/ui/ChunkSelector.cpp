@@ -12,30 +12,30 @@
 
 #include "Rectangle.h"
 
-#include "BlockSelector.h"
+#include "ChunkSelector.h"
 
 #undef LOG
-#define LOG Logger("BlockSelector")
+#define LOG Logger("ChunkSelector")
 
-static constexpr int BLOCK_SPACING = 5;
+static constexpr int CHUNK_SPACING = 5;
 
-BlockSelector::BlockSelector(QWidget *parent, QPixmap** blocks, size_t blockCount)
+ChunkSelector::ChunkSelector(QWidget *parent, QPixmap** chunks, size_t chunkCount)
   : QWidget(parent)
   , m_scene(nullptr)
   , m_view(nullptr)
   , m_selected(nullptr)
-  , m_blocks(blocks)
-  , m_blockItems(nullptr)
-  , m_blockCount(blockCount)
-  , m_selectedBlock(0)
-  , m_highlightedBlock(-1)
+  , m_chunks(chunks)
+  , m_chunkItems(nullptr)
+  , m_chunkCount(chunkCount)
+  , m_selectedChunk(0)
+  , m_highlightedChunk(-1)
 {
-  // add blocks to scene
+  // add chunks to scene
   m_scene = new QGraphicsScene(this);
-  m_blockItems = new QGraphicsPixmapItem*[blockCount];
-  for (size_t i = 0; i < blockCount; i++) {
-    m_blockItems[i] = m_scene->addPixmap(*blocks[i]);
-    m_blockItems[i]->setPos(0, i * (128 + BLOCK_SPACING));
+  m_chunkItems = new QGraphicsPixmapItem*[chunkCount];
+  for (size_t i = 0; i < chunkCount; i++) {
+    m_chunkItems[i] = m_scene->addPixmap(*chunks[i]);
+    m_chunkItems[i]->setPos(0, i * (128 + CHUNK_SPACING));
   }
 
   // create view
@@ -57,7 +57,7 @@ BlockSelector::BlockSelector(QWidget *parent, QPixmap** blocks, size_t blockCoun
   m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-  // styleable container for selected block
+  // styleable container for selected chunk
   auto selectedContainer = new QWidget(this);
   auto selectedLayout = new QVBoxLayout(this);
   // use half-scrollbar size so that it is as wide as the scrollable view
@@ -66,11 +66,11 @@ BlockSelector::BlockSelector(QWidget *parent, QPixmap** blocks, size_t blockCoun
   selectedContainer->setLayout(selectedLayout);
   selectedContainer->setStyleSheet("background: #ccc");
 
-  // selected block
+  // selected chunk
   m_selected = new QLabel(this);
   m_selected->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
   m_selected->setAttribute(Qt::WA_TranslucentBackground);
-  m_selected->setPixmap(*m_blocks[0]);
+  m_selected->setPixmap(*m_chunks[0]);
   selectedLayout->addWidget(m_selected);
 
   // layout
@@ -92,7 +92,7 @@ BlockSelector::BlockSelector(QWidget *parent, QPixmap** blocks, size_t blockCoun
   m_view->setMouseTracking(true);
 }
 
-bool BlockSelector::eventFilter(QObject *object, QEvent *ev)
+bool ChunkSelector::eventFilter(QObject *object, QEvent *ev)
 {
   if (object != m_view->viewport()) {
     return false;
@@ -100,7 +100,7 @@ bool BlockSelector::eventFilter(QObject *object, QEvent *ev)
 
   switch (ev->type()) {
   case QEvent::Leave:
-    m_highlightedBlock = -1;
+    m_highlightedChunk = -1;
     m_highlight->setVisible(false);
     break;
 
@@ -120,34 +120,34 @@ bool BlockSelector::eventFilter(QObject *object, QEvent *ev)
   return false;
 }
 
-void BlockSelector::handleClick(const QPoint& pos)
+void ChunkSelector::handleClick(const QPoint& pos)
 {
-  const int y = pos.y() - BLOCK_SPACING + m_view->verticalScrollBar()->value();
-  const int tileOffset = y % (128 + BLOCK_SPACING);
+  const int y = pos.y() - CHUNK_SPACING + m_view->verticalScrollBar()->value();
+  const int tileOffset = y % (128 + CHUNK_SPACING);
 
   if (tileOffset < 128) {
-    const int tile = y / (128 + BLOCK_SPACING);
-    LOG() << "Selected block " << tile;
-    m_selectedBlock = tile;
-    m_selected->setPixmap(*m_blocks[tile]);
-    emit blockSelected(tile);
+    const int tile = y / (128 + CHUNK_SPACING);
+    LOG() << "Selected chunk " << tile;
+    m_selectedChunk = tile;
+    m_selected->setPixmap(*m_chunks[tile]);
+    emit chunkSelected(tile);
   }
 }
 
-void BlockSelector::handleMove(const QPoint &pos)
+void ChunkSelector::handleMove(const QPoint &pos)
 {
-  const int y = pos.y() - BLOCK_SPACING + m_view->verticalScrollBar()->value();
-  const int tileOffset = y % (128 + BLOCK_SPACING);
+  const int y = pos.y() - CHUNK_SPACING + m_view->verticalScrollBar()->value();
+  const int tileOffset = y % (128 + CHUNK_SPACING);
   if (tileOffset >= 128) {
-    m_highlightedBlock = -1;
+    m_highlightedChunk = -1;
     m_highlight->setVisible(false);
     return;
   }
 
-  const int tile = y / (128 + BLOCK_SPACING);
-  if (m_highlightedBlock != tile) {
-    m_highlightedBlock = tile;
-    m_highlight->setPos(0, tile * (128 + BLOCK_SPACING));
+  const int tile = y / (128 + CHUNK_SPACING);
+  if (m_highlightedChunk != tile) {
+    m_highlightedChunk = tile;
+    m_highlight->setPos(0, tile * (128 + CHUNK_SPACING));
     m_highlight->setVisible(true);
   }
 }

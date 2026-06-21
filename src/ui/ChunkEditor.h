@@ -11,21 +11,22 @@ class QComboBox;
 class QLabel;
 class QListWidget;
 class QListWidgetItem;
+class QPainter;
 
-class Block;
 class Chunk;
+class Block;
 class Level;
 class Palette;
 class Pattern;
 
-class TileCanvas : public QWidget
+class ChunkCanvas : public QWidget
 {
   Q_OBJECT
 
 public:
-  TileCanvas(QWidget* parent, std::shared_ptr<Level>& level);
+  ChunkCanvas(QWidget* parent, std::shared_ptr<Level>& level);
 
-  void setTileIndex(size_t tileIndex);
+  void setChunkIndex(size_t chunkIndex);
   void setPreviewPalette(size_t paletteIndex);
   void setSelectedBlock(uint16_t blockIndex);
   void setHorizontalFlip(bool enabled);
@@ -38,12 +39,12 @@ protected:
 
 private:
   void drawAt(const QPoint& pos);
-  void drawBlock(QPainter& painter, const Block& block);
-  void drawChunk(QPainter& painter, const Chunk& chunk, int dx, int dy, bool hFlip, bool vFlip);
+  void drawChunk(QPainter& painter, const Chunk& chunk);
+  void drawBlock(QPainter& painter, const Block& block, int dx, int dy, bool hFlip, bool vFlip);
   void drawPattern(QPainter& painter, const Pattern& pattern, const Palette& palette, int dx, int dy, bool hFlip, bool vFlip);
 
   std::shared_ptr<Level> m_level;
-  size_t m_tileIndex;
+  size_t m_chunkIndex;
   size_t m_previewPaletteIndex;
   uint16_t m_selectedBlockIndex;
   bool m_hFlip;
@@ -52,33 +53,33 @@ private:
   int m_highlightY;
 
 signals:
-  void tileModified();
+  void chunkModified();
 };
 
-class TileEditor : public QDialog
+class ChunkEditor : public QDialog
 {
   Q_OBJECT
 
 public:
-  TileEditor(QWidget* parent, std::shared_ptr<Level>& level);
+  ChunkEditor(QWidget* parent, std::shared_ptr<Level>& level);
 
 private:
   QPixmap renderBlockPreview(size_t blockIndex, int scale) const;
   void drawPattern(QImage& image, const Pattern& pattern, const Palette& palette, int dx, int dy, bool hFlip, bool vFlip) const;
-  void drawBlockPreview(QImage& image, const Chunk& chunk, int dx, int dy) const;
+  void drawBlockPreview(QImage& image, const Block& block, int dx, int dy) const;
   void populateBlockSelector();
   void updateTitle();
 
   std::shared_ptr<Level> m_level;
 
-  QComboBox* m_tileCombo;
+  QComboBox* m_chunkCombo;
   QComboBox* m_paletteCombo;
   QListWidget* m_blockList;
   QCheckBox* m_hFlipCheckBox;
   QCheckBox* m_vFlipCheckBox;
-  TileCanvas* m_canvas;
+  ChunkCanvas* m_canvas;
 
-  size_t m_tileIndex;
+  size_t m_chunkIndex;
   size_t m_previewPaletteIndex;
   bool m_dirty;
 
@@ -86,10 +87,10 @@ private slots:
   void blockChanged(QListWidgetItem* current, QListWidgetItem* previous);
   void horizontalFlipChanged(int state);
   void paletteChanged(int paletteIndex);
-  void tileChanged(int tileIndex);
-  void tileModified();
+  void chunkChanged(int chunkIndex);
+  void chunkModified();
   void verticalFlipChanged(int state);
 
 signals:
-  void tilesModified();
+  void chunksModified();
 };

@@ -12,12 +12,12 @@ class QLabel;
 class Level;
 class Rectangle;
 
-class BlockSelector : public QWidget
+class ChunkSelector : public QWidget
 {
   Q_OBJECT
 
 public:
-  BlockSelector(QWidget *parent, QPixmap** blocks, size_t blockCount);
+  ChunkSelector(QWidget *parent, QPixmap** chunks, size_t chunkCount);
 
 protected:
   bool eventFilter(QObject *object, QEvent *ev) override;
@@ -29,16 +29,16 @@ private:
   QGraphicsScene* m_scene;
   QGraphicsView* m_view;
   QLabel* m_selected;
-  QPixmap** m_blocks;
-  QGraphicsPixmapItem** m_blockItems;
+  QPixmap** m_chunks;
+  QGraphicsPixmapItem** m_chunkItems;
 
   Rectangle* m_highlight;
 
-  size_t m_blockCount;
+  size_t m_chunkCount;
 
-  int m_selectedBlock;
-  int m_highlightedBlock;
+  int m_selectedChunk;
+  int m_highlightedChunk;
 
 signals:
-  void blockSelected(int);
+  void chunkSelected(int);
 };

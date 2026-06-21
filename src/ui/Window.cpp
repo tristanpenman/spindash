@@ -20,15 +20,15 @@
 #include "../Map.h"
 #include "../Rom.h"
 
-#include "BlockInspector.h"
 #include "ChunkInspector.h"
+#include "BlockInspector.h"
 #include "LevelSelect.h"
 #include "MapEditor.h"
 #include "PaletteInspector.h"
 #include "PatternEditor.h"
 #include "PatternInspector.h"
 #include "RomInfo.h"
-#include "TileEditor.h"
+#include "ChunkEditor.h"
 
 #include "Window.h"
 
@@ -42,8 +42,8 @@ Window::Window()
   , m_levelSelect(nullptr)
   , m_paletteInspector(nullptr)
   , m_patternInspector(nullptr)
-  , m_chunkInspector(nullptr)
   , m_blockInspector(nullptr)
+  , m_chunkInspector(nullptr)
   , m_romInfo(nullptr)
   , m_mapEditor(nullptr)
   , m_openRomAction(nullptr)
@@ -54,7 +54,7 @@ Window::Window()
   , m_undoAction(nullptr)
   , m_redoAction(nullptr)
   , m_patternEditorAction(nullptr)
-  , m_tileEditorAction(nullptr)
+  , m_chunkEditorAction(nullptr)
   , m_actualSizeAction(nullptr)
   , m_zoomInAction(nullptr)
   , m_zoomOutAction(nullptr)
@@ -311,15 +311,15 @@ void Window::showPatternEditor()
   editor.exec();
 }
 
-void Window::showTileEditor()
+void Window::showChunkEditor()
 {
   if (!m_level) {
     return;
   }
 
-  auto* editor = new TileEditor(this, m_level);
+  auto* editor = new ChunkEditor(this, m_level);
   editor->setAttribute(Qt::WA_DeleteOnClose);
-  connect(editor, SIGNAL(tilesModified()), this, SLOT(tilesModified()));
+  connect(editor, SIGNAL(chunksModified()), this, SLOT(chunksModified()));
   editor->show();
 }
 
@@ -368,15 +368,6 @@ void Window::showPatternInspector()
   m_patternInspector->show();
 }
 
-void Window::showChunkInspector()
-{
-  if (!m_chunkInspector) {
-    m_chunkInspector = new ChunkInspector(this, m_level);
-  }
-
-  m_chunkInspector->show();
-}
-
 void Window::showBlockInspector()
 {
   if (!m_blockInspector) {
@@ -384,6 +375,15 @@ void Window::showBlockInspector()
   }
 
   m_blockInspector->show();
+}
+
+void Window::showChunkInspector()
+{
+  if (!m_chunkInspector) {
+    m_chunkInspector = new ChunkInspector(this, m_level);
+  }
+
+  m_chunkInspector->show();
 }
 
 void Window::showRomInfo()
@@ -446,11 +446,11 @@ void Window::levelSelected(int levelIdx)
     delete m_patternInspector;
     m_patternInspector = nullptr;
 
-    delete m_chunkInspector;
-    m_chunkInspector = nullptr;
-
     delete m_blockInspector;
     m_blockInspector = nullptr;
+
+    delete m_chunkInspector;
+    m_chunkInspector = nullptr;
 
     delete m_mapEditor;
     m_mapEditor = nullptr;
@@ -480,7 +480,7 @@ void Window::levelSelected(int levelIdx)
   m_exportBinaryAction->setEnabled(true);
   m_exportPngAction->setEnabled(true);
   m_patternEditorAction->setEnabled(true);
-  m_tileEditorAction->setEnabled(true);
+  m_chunkEditorAction->setEnabled(true);
 
   m_inspectorsMenu->setEnabled(true);
   m_romInfoAction->setEnabled(true);
@@ -530,25 +530,25 @@ void Window::patternModified()
   if (m_patternInspector) {
     m_patternInspector->refresh();
   }
-  if (m_chunkInspector) {
-    m_chunkInspector->refresh();
-  }
   if (m_blockInspector) {
     m_blockInspector->refresh();
   }
+  if (m_chunkInspector) {
+    m_chunkInspector->refresh();
+  }
   if (m_mapEditor) {
-    m_mapEditor->refreshBlocks();
+    m_mapEditor->refreshChunks();
   }
   m_hasUnsavedChanges = true;
 }
 
-void Window::tilesModified()
+void Window::chunksModified()
 {
-  if (m_blockInspector) {
-    m_blockInspector->refresh();
+  if (m_chunkInspector) {
+    m_chunkInspector->refresh();
   }
   if (m_mapEditor) {
-    m_mapEditor->refreshBlocks();
+    m_mapEditor->refreshChunks();
   }
   m_hasUnsavedChanges = true;
 }
@@ -667,19 +667,19 @@ void Window::createEditMenu()
   m_redoAction->setDisabled(true);
   connect(m_redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 
-  m_patternEditorAction = new QAction(tr("Pattern Editor..."));
+  m_patternEditorAction = new QAction(tr("8x8 Pattern Editor..."));
   m_patternEditorAction->setDisabled(true);
   connect(m_patternEditorAction, SIGNAL(triggered()), this, SLOT(showPatternEditor()));
 
-  m_tileEditorAction = new QAction(tr("Tile Editor..."));
-  m_tileEditorAction->setDisabled(true);
-  connect(m_tileEditorAction, SIGNAL(triggered()), this, SLOT(showTileEditor()));
+  m_chunkEditorAction = new QAction(tr("128x128 Chunk Editor..."));
+  m_chunkEditorAction->setDisabled(true);
+  connect(m_chunkEditorAction, SIGNAL(triggered()), this, SLOT(showChunkEditor()));
 
   editMenu->addAction(m_undoAction);
   editMenu->addAction(m_redoAction);
   editMenu->addSeparator();
   editMenu->addAction(m_patternEditorAction);
-  editMenu->addAction(m_tileEditorAction);
+  editMenu->addAction(m_chunkEditorAction);
 }
 
 void Window::createViewMenu()
@@ -691,10 +691,10 @@ void Window::createViewMenu()
   connect(inspectPalettesAction, SIGNAL(triggered()), this, SLOT(showPaletteInspector()));
   auto inspectPatternsAction = new QAction(tr("Patterns (8x8)"), this);
   connect(inspectPatternsAction, SIGNAL(triggered()), this, SLOT(showPatternInspector()));
-  auto inspectChunksAction = new QAction(tr("Chunks (16x16)"), this);
-  connect(inspectChunksAction, SIGNAL(triggered()), this, SLOT(showChunkInspector()));
-  auto inspectBlocksAction = new QAction(tr("Blocks (128x128)"), this);
+  auto inspectBlocksAction = new QAction(tr("Blocks (16x16)"), this);
   connect(inspectBlocksAction, SIGNAL(triggered()), this, SLOT(showBlockInspector()));
+  auto inspectChunksAction = new QAction(tr("Chunks (128x128)"), this);
+  connect(inspectChunksAction, SIGNAL(triggered()), this, SLOT(showChunkInspector()));
 
   // build inspectors sub-menu
   m_inspectorsMenu = viewMenu->addMenu(tr("&Inspectors"));
@@ -702,8 +702,8 @@ void Window::createViewMenu()
   m_inspectorsMenu->addAction(inspectPalettesAction);
   m_inspectorsMenu->addSeparator();
   m_inspectorsMenu->addAction(inspectPatternsAction);
-  m_inspectorsMenu->addAction(inspectChunksAction);
   m_inspectorsMenu->addAction(inspectBlocksAction);
+  m_inspectorsMenu->addAction(inspectChunksAction);
 
   // zoom
   m_actualSizeAction = new QAction(tr("Actual Size"), this);

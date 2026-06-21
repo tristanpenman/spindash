@@ -4,8 +4,8 @@
 
 #include "../Level.h"
 
-class Block;
 class Chunk;
+class Block;
 class Map;
 class Palette;
 class Pattern;
@@ -20,8 +20,8 @@ public:
               uint32_t characterPaletteAddr,
               uint32_t levelPalettesAddr,
               uint32_t patternsAddr,
-              uint32_t chunksAddr,
               uint32_t blocksAddr,
+              uint32_t chunksAddr,
               uint32_t mapAddr);
 
   size_t getPaletteCount() const override;
@@ -31,12 +31,12 @@ public:
   const Pattern& getPattern(size_t index) const override;
   Pattern& getPattern(size_t index) override;
 
-  size_t getChunkCount() const override;
-  const Chunk& getChunk(size_t index) const override;
-
   size_t getBlockCount() const override;
   const Block& getBlock(size_t index) const override;
-  Block& getBlock(size_t index) override;
+
+  size_t getChunkCount() const override;
+  const Chunk& getChunk(size_t index) const override;
+  Chunk& getChunk(size_t index) override;
 
   Map& getMap() override;
 
@@ -46,19 +46,19 @@ private:
 
   void loadPalettes(Rom& rom, uint32_t characterPaletteAddr, uint32_t levelPalettesAddr);
   void loadPatterns(Rom& rom, uint32_t patternsAddr);
-  void loadChunks(Rom& rom, uint32_t chunksAddr);
   void loadBlocks(Rom& rom, uint32_t blocksAddr);
+  void loadChunks(Rom& rom, uint32_t chunksAddr);
   void loadMap(Rom& rom, uint32_t mapAddr);
 
   Palette* m_palettes;
   Pattern* m_patterns;
-  Chunk* m_chunks;
   Block* m_blocks;
+  Chunk* m_chunks;
   Map* m_map;
 
   size_t m_patternCount;
-  size_t m_chunkCount;
   size_t m_blockCount;
+  size_t m_chunkCount;
 };
 
 inline size_t Sonic2Level::getPaletteCount() const
@@ -71,12 +71,12 @@ inline size_t Sonic2Level::getPatternCount() const
   return m_patternCount;
 }
 
-inline size_t Sonic2Level::getChunkCount() const
-{
-  return m_chunkCount;
-}
-
 inline size_t Sonic2Level::getBlockCount() const
 {
   return m_blockCount;
+}
+
+inline size_t Sonic2Level::getChunkCount() const
+{
+  return m_chunkCount;
 }

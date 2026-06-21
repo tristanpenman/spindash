@@ -1,28 +1,44 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "Pattern.h"
-
 #include "Chunk.h"
 
-void Chunk::fromSegaFormat(uint8_t *buffer)
+void Chunk::fromSegaFormat(uint8_t buffer[CHUNK_SIZE_IN_ROM])
 {
-  for (unsigned int i = 0; i < PATTERNS_PER_CHUNK; i++) {
+  for (unsigned int i = 0; i < BLOCKS_PER_CHUNK; i++) {
     uint16_t index = (static_cast<uint16_t>(buffer[0]) << 8) & 0xFF00;
     index |= (buffer[1]) & 0x00FF;
 
-    // Set index
-    m_patternDescs[i].set(index);
+    m_blockDescs[i].set(index);
 
-    buffer += PatternDesc::getIndexSize();
+    buffer += BlockDesc::getIndexSize();
   }
 }
 
-const PatternDesc& Chunk::getPatternDesc(uint8_t x, uint8_t y) const
+void Chunk::toSegaFormat(uint8_t buffer[CHUNK_SIZE_IN_ROM]) const
 {
-  if (x > 1 || y > 1) {
-    throw std::runtime_error("Invalid pattern index");
+  for (unsigned int i = 0; i < BLOCKS_PER_CHUNK; i++) {
+    const uint16_t index = m_blockDescs[i].get();
+    buffer[0] = static_cast<uint8_t>((index >> 8) & 0xFF);
+    buffer[1] = static_cast<uint8_t>(index & 0xFF);
+    buffer += BlockDesc::getIndexSize();
+  }
+}
+
+const BlockDesc& Chunk::getBlockDesc(uint8_t x, uint8_t y) const
+{
+  if (x > 7 || y > 7) {
+    throw std::runtime_error("Invalid block index");
   }
 
-  return m_patternDescs[y * 2 + x];
+  return m_blockDescs[y * 8 + x];
+}
+
+void Chunk::setBlockDesc(uint8_t x, uint8_t y, uint16_t value)
+{
+  if (x > 7 || y > 7) {
+    throw std::runtime_error("Invalid block index");
+  }
+
+  m_blockDescs[y * 8 + x].set(value);
 }

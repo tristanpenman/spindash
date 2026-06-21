@@ -10,7 +10,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class QPixmap;
 
-class Chunk;
+class Block;
 class Command;
 class Level;
 class Palette;
@@ -33,7 +33,7 @@ public:
   void zoomOut();
 
   void drawToImage(QImage &image);
-  void refreshBlocks();
+  void refreshChunks();
 
   int getWidth() const;
   int getHeight() const;
@@ -50,21 +50,21 @@ private:
   void handleMove(const QPointF& pos);
 
   void drawPattern(QImage&, const Pattern&, const Palette&, int dx, int dy, bool hFlip, bool vFlip);
-  void drawChunk(QImage&, const Chunk&, int dx, int dy, bool hFlip, bool vFlip);
-  void drawBlock(QPixmap&, size_t index);
+  void drawBlock(QImage&, const Block&, int dx, int dy, bool hFlip, bool vFlip);
+  void drawChunk(QPixmap&, size_t index);
 
   std::shared_ptr<Level> m_level;
 
   QGraphicsScene* m_scene;
   QGraphicsView* m_view;
   QGraphicsPixmapItem** m_tiles;
-  QPixmap** m_blocks;
+  QPixmap** m_chunks;
   Rectangle* m_highlight;
 
   int m_highlightX;
   int m_highlightY;
 
-  size_t m_selectedBlock;
+  size_t m_selectedChunk;
 
   std::deque<std::shared_ptr<Command>> m_undoCommands;
   std::deque<std::shared_ptr<Command>> m_redoCommands;
@@ -72,7 +72,7 @@ private:
   std::shared_ptr<PencilCommand> m_pencilCommand;
 
 private slots:
-  void blockSelected(int);
+  void chunkSelected(int);
 
 signals:
   void currentTile(uint16_t x, uint16_t y, uint8_t value);

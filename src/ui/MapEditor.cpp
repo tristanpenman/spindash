@@ -8,8 +8,8 @@
 #include <QPixmap>
 #include <QScrollBar>
 
-#include "../Block.h"
 #include "../Chunk.h"
+#include "../Block.h"
 #include "../Level.h"
 #include "../Logger.h"
 #include "../Map.h"
@@ -18,7 +18,7 @@
 
 #include "../commands/PencilCommand.h"
 
-#include "BlockSelector.h"
+#include "ChunkSelector.h"
 #include "Rectangle.h"
 #include "ZoomSupport.h"
 
@@ -36,7 +36,7 @@ MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
   , m_level(level)
   , m_highlightX(-1)
   , m_highlightY(-1)
-  , m_selectedBlock(0)
+  , m_selectedChunk(0)
 {
   setStyleSheet("background: #ccc");
 
@@ -46,13 +46,13 @@ MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
   hbox->setSpacing(8);
   setLayout(hbox);
 
-  // render block artwork into pixmaps
-  LOG() << "Drawing blocks";
-  const size_t blockCount = m_level->getBlockCount();
-  m_blocks = new QPixmap*[blockCount];
-  for (size_t i = 0; i < blockCount; i++) {
-    m_blocks[i] = new QPixmap();
-    drawBlock(*m_blocks[i], i);
+  // render chunk artwork into pixmaps
+  LOG() << "Drawing chunks";
+  const size_t chunkCount = m_level->getChunkCount();
+  m_chunks = new QPixmap*[chunkCount];
+  for (size_t i = 0; i < chunkCount; i++) {
+    m_chunks[i] = new QPixmap();
+    drawChunk(*m_chunks[i], i);
   }
 
   // populate scene
@@ -62,7 +62,7 @@ MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
   for (int y = 0; y < map.getHeight(); y++) {
     for (int x = 0; x < map.getWidth(); x++) {
       auto& tile = m_tiles[y * map.getWidth() + x];
-      tile = m_scene->addPixmap(*m_blocks[map.getValue(0, x, y)]);
+      tile = m_scene->addPixmap(*m_chunks[map.getValue(0, x, y)]);
       tile->setTransformationMode(Qt::SmoothTransformation);
       tile->setPos(x * 128, y * 128);
     }
@@ -90,11 +90,11 @@ MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
   new ZoomSupport(m_view);
 
   // selector
-  auto blockSelector = new BlockSelector(this, m_blocks, blockCount);
-  hbox->addWidget(blockSelector);
-  connect(blockSelector, SIGNAL(blockSelected(int)), this, SLOT(blockSelected(int)));
+  auto chunkSelector = new ChunkSelector(this, m_chunks, chunkCount);
+  hbox->addWidget(chunkSelector);
+  connect(chunkSelector, SIGNAL(chunkSelected(int)), this, SLOT(chunkSelected(int)));
 
-  // allow map to grow but block selector remains the same size
+  // allow map to grow but chunk selector remains the same size
   hbox->setStretch(0, 1);
   hbox->setStretch(1, 0);
 }
@@ -158,30 +158,30 @@ void MapEditor::drawToImage(QImage &image)
   m_scene->render(&painter);
 }
 
-void MapEditor::refreshBlocks()
+void MapEditor::refreshChunks()
 {
-  const size_t blockCount = m_level->getBlockCount();
-  for (size_t i = 0; i < blockCount; i++) {
-    drawBlock(*m_blocks[i], i);
+  const size_t chunkCount = m_level->getChunkCount();
+  for (size_t i = 0; i < chunkCount; i++) {
+    drawChunk(*m_chunks[i], i);
   }
 
   const auto& map = m_level->getMap();
   for (int y = 0; y < map.getHeight(); y++) {
     for (int x = 0; x < map.getWidth(); x++) {
       const auto offset = static_cast<size_t>(y) * static_cast<size_t>(map.getWidth()) + static_cast<size_t>(x);
-      m_tiles[offset]->setPixmap(*m_blocks[map.getValue(0, x, y)]);
+      m_tiles[offset]->setPixmap(*m_chunks[map.getValue(0, x, y)]);
     }
   }
 }
 
 int MapEditor::getWidth() const
 {
-  return m_level->getMap().getWidth() * Block::BLOCK_WIDTH;
+  return m_level->getMap().getWidth() * Chunk::CHUNK_WIDTH;
 }
 
 int MapEditor::getHeight() const
 {
-  return m_level->getMap().getHeight() * Block::BLOCK_HEIGHT;
+  return m_level->getMap().getHeight() * Chunk::CHUNK_HEIGHT;
 }
 
 bool MapEditor::eventFilter(QObject *object, QEvent *ev)
@@ -225,7 +225,7 @@ shared_ptr<Command> MapEditor::applyCommand(Command& command)
   for (const auto& change : result.changes) {
     const auto offset = static_cast<size_t>(change.y) * m_level->getMap().getWidth()
         + static_cast<size_t>(change.x);
-    m_tiles[offset]->setPixmap(*m_blocks[static_cast<size_t>(change.value)]);
+    m_tiles[offset]->setPixmap(*m_chunks[static_cast<size_t>(change.value)]);
   }
 
   return result.undoCommand;
@@ -241,11 +241,11 @@ bool MapEditor::handleMousePress()
   // update tile
   const auto offset = static_cast<size_t>(m_highlightY) * m_level->getMap().getWidth()
       + static_cast<size_t>(m_highlightX);
-  m_tiles[offset]->setPixmap(*m_blocks[m_selectedBlock]);
+  m_tiles[offset]->setPixmap(*m_chunks[m_selectedChunk]);
 
   // start command
   m_pencilCommand = std::make_shared<PencilCommand>(m_level->getMap());
-  m_pencilCommand->addChange(0, m_highlightX, m_highlightY, static_cast<int>(m_selectedBlock));
+  m_pencilCommand->addChange(0, m_highlightX, m_highlightY, static_cast<int>(m_selectedChunk));
 
   return true;
 }
@@ -291,8 +291,8 @@ void MapEditor::handleMove(const QPointF& pos)
     if (m_pencilCommand) {
       const auto offset = static_cast<size_t>(m_highlightY) * map.getWidth()
           + static_cast<size_t>(m_highlightX);
-      m_tiles[offset]->setPixmap(*m_blocks[m_selectedBlock]);
-      m_pencilCommand->addChange(0, m_highlightX, m_highlightY, static_cast<int>(m_selectedBlock));
+      m_tiles[offset]->setPixmap(*m_chunks[m_selectedChunk]);
+      m_pencilCommand->addChange(0, m_highlightX, m_highlightY, static_cast<int>(m_selectedChunk));
     }
 
     m_highlightX = highlightX;
@@ -325,11 +325,11 @@ void MapEditor::drawPattern(QImage& image,
   }
 }
 
-void MapEditor::drawChunk(QImage& image, const Chunk& chunk, int dx, int dy, bool hFlip, bool vFlip)
+void MapEditor::drawBlock(QImage& image, const Block& block, int dx, int dy, bool hFlip, bool vFlip)
 {
   for (int py = 0; py < 2; py++) {
     for (int px = 0; px < 2; px++) {
-      const auto& patternDesc = chunk.getPatternDesc(hFlip ? 1 - px : px, vFlip ? 1 - py : py);
+      const auto& patternDesc = block.getPatternDesc(hFlip ? 1 - px : px, vFlip ? 1 - py : py);
 
       const auto paletteIndex = patternDesc.getPaletteIndex();
       const auto patternIndex = patternDesc.getPatternIndex();
@@ -348,22 +348,22 @@ void MapEditor::drawChunk(QImage& image, const Chunk& chunk, int dx, int dy, boo
   }
 }
 
-void MapEditor::drawBlock(QPixmap& pixmap, size_t index)
+void MapEditor::drawChunk(QPixmap& pixmap, size_t index)
 {
-  const Block& block = m_level->getBlock(index);
+  const Chunk& chunk = m_level->getChunk(index);
 
-  QImage image(Block::BLOCK_WIDTH, Block::BLOCK_HEIGHT, QImage::Format_RGB888);
+  QImage image(Chunk::CHUNK_WIDTH, Chunk::CHUNK_HEIGHT, QImage::Format_RGB888);
   image.fill(0);
 
   for (int dy = 0; dy < 8; dy++) {
     for (int dx = 0; dx < 8; dx++) {
-      const auto& chunkDesc = block.getChunkDesc(dx, dy);
-      const auto chunkIndex = chunkDesc.getChunkIndex();
+      const auto& blockDesc = chunk.getBlockDesc(dx, dy);
+      const auto blockIndex = blockDesc.getBlockIndex();
       try {
-        const auto& chunk = m_level->getChunk(chunkIndex);
-        drawChunk(image, chunk, dx * 16, dy * 16, chunkDesc.getHFlip(), chunkDesc.getVFlip());
+        const auto& block = m_level->getBlock(blockIndex);
+        drawBlock(image, block, dx * 16, dy * 16, blockDesc.getHFlip(), blockDesc.getVFlip());
       } catch (const exception& e) {
-        LOG() << "Failed to draw chunk: " << e.what();
+        LOG() << "Failed to draw block: " << e.what();
       }
     }
   }
@@ -373,7 +373,7 @@ void MapEditor::drawBlock(QPixmap& pixmap, size_t index)
   }
 }
 
-void MapEditor::blockSelected(int blockIdx)
+void MapEditor::chunkSelected(int chunkIdx)
 {
-  m_selectedBlock = blockIdx;
+  m_selectedChunk = chunkIdx;
 }

@@ -1,6 +1,6 @@
 
-#include "../Block.h"
 #include "../Chunk.h"
+#include "../Block.h"
 #include "../KosinskiReader.h"
 #include "../Logger.h"
 #include "../Map.h"
@@ -22,23 +22,23 @@ Sonic3Level::Sonic3Level(Rom& rom,
                          uint32_t levelPalettesAddr,
                          uint32_t patternsAddr,
                          uint32_t extendedPatternsAddr,
-                         uint32_t chunksAddr,
-                         uint32_t extendedChunksAddr,
                          uint32_t blocksAddr,
                          uint32_t extendedBlocksAddr,
+                         uint32_t chunksAddr,
+                         uint32_t extendedChunksAddr,
                          uint32_t mapAddr)
   : m_palettes(nullptr)
   , m_patterns(nullptr)
-  , m_chunks(nullptr)
+  , m_blocks(nullptr)
   , m_map(nullptr)
   , m_patternCount(0)
-  , m_chunkCount(0)
   , m_blockCount(0)
+  , m_chunkCount(0)
 {
   loadPalettes(rom, sonicPaletteAddr, levelPalettesAddr);
   loadPatterns(rom, patternsAddr, extendedPatternsAddr);
-  loadChunks(rom, chunksAddr, extendedChunksAddr);
   loadBlocks(rom, blocksAddr, extendedBlocksAddr);
+  loadChunks(rom, chunksAddr, extendedChunksAddr);
   loadMap(rom, mapAddr);
 }
 
@@ -69,15 +69,6 @@ Pattern& Sonic3Level::getPattern(size_t index)
   return m_patterns[index];
 }
 
-const Chunk& Sonic3Level::getChunk(size_t index) const
-{
-  if (index >= m_chunkCount) {
-    throw runtime_error("Invalid chunk index");
-  }
-
-  return m_chunks[index];
-}
-
 const Block& Sonic3Level::getBlock(size_t index) const
 {
   if (index >= m_blockCount) {
@@ -87,13 +78,22 @@ const Block& Sonic3Level::getBlock(size_t index) const
   return m_blocks[index];
 }
 
-Block& Sonic3Level::getBlock(size_t index)
+const Chunk& Sonic3Level::getChunk(size_t index) const
 {
-  if (index >= m_blockCount) {
-    throw runtime_error("Invalid block index");
+  if (index >= m_chunkCount) {
+    throw runtime_error("Invalid chunk index");
   }
 
-  return m_blocks[index];
+  return m_chunks[index];
+}
+
+Chunk& Sonic3Level::getChunk(size_t index)
+{
+  if (index >= m_chunkCount) {
+    throw runtime_error("Invalid chunk index");
+  }
+
+  return m_chunks[index];
 }
 
 Map& Sonic3Level::getMap()
@@ -203,60 +203,9 @@ void Sonic3Level::loadPatterns(Rom& rom, uint32_t basePatternsAddr, uint32_t ext
   LOG() << "Pattern count: " << m_patternCount << " (total: " << total << " bytes)";
 }
 
-void Sonic3Level::loadChunks(Rom& rom, uint32_t baseChunksAddr, uint32_t extChunksAddr)
-{
-  static constexpr size_t CHUNK_BUFFER_SIZE = 0xFFFF; // 64KB
-
-  // setup decompression
-  auto& file = rom.getFile();
-  KosinskiReader reader;
-  vector<uint8_t> buffer(CHUNK_BUFFER_SIZE);
-  size_t total = 0;
-
-  {
-    // decompress base chunks
-    file.seek(baseChunksAddr);
-    auto result = reader.decompress(file, buffer.data(), CHUNK_BUFFER_SIZE);
-    if (!result.first) {
-      throw runtime_error("Base chunk decompression error");
-    }
-
-    if (result.second % Chunk::CHUNK_SIZE_IN_ROM != 0) {
-      throw runtime_error("Inconsistent base chunk data");
-    }
-
-    m_chunkCount = result.second / Chunk::CHUNK_SIZE_IN_ROM;
-    total += result.second;
-  }
-
-  {
-    // decompress extended chunks
-    file.seek(extChunksAddr);
-    auto result = reader.decompress(file, buffer.data() + total, CHUNK_BUFFER_SIZE - total);
-    if (!result.first) {
-      throw runtime_error("Extended chunk decompression error");
-    }
-
-    if (result.second % Chunk::CHUNK_SIZE_IN_ROM != 0) {
-      throw runtime_error("Inconsistent extended chunk data");
-    }
-
-    m_chunkCount += result.second / Chunk::CHUNK_SIZE_IN_ROM;
-    m_chunks = new Chunk[m_chunkCount];
-
-    for (size_t i = 0; i < m_chunkCount; i++) {
-      m_chunks[i].fromSegaFormat(&buffer[i * Chunk::CHUNK_SIZE_IN_ROM]);
-    }
-
-    total += result.second;
-  }
-
-  LOG() << "Chunk count: " << m_chunkCount << " (total: " << total << " bytes)";
-}
-
 void Sonic3Level::loadBlocks(Rom& rom, uint32_t baseBlocksAddr, uint32_t extBlocksAddr)
 {
-  static constexpr size_t BLOCK_BUFFER_SIZE = 0xFFFFF; // 64KB
+  static constexpr size_t BLOCK_BUFFER_SIZE = 0xFFFF; // 64KB
 
   // setup decompression
   auto& file = rom.getFile();
@@ -298,9 +247,60 @@ void Sonic3Level::loadBlocks(Rom& rom, uint32_t baseBlocksAddr, uint32_t extBloc
     for (size_t i = 0; i < m_blockCount; i++) {
       m_blocks[i].fromSegaFormat(&buffer[i * Block::BLOCK_SIZE_IN_ROM]);
     }
+
+    total += result.second;
   }
 
   LOG() << "Block count: " << m_blockCount << " (total: " << total << " bytes)";
+}
+
+void Sonic3Level::loadChunks(Rom& rom, uint32_t baseChunksAddr, uint32_t extChunksAddr)
+{
+  static constexpr size_t CHUNK_BUFFER_SIZE = 0xFFFFF; // 64KB
+
+  // setup decompression
+  auto& file = rom.getFile();
+  KosinskiReader reader;
+  vector<uint8_t> buffer(CHUNK_BUFFER_SIZE);
+  size_t total = 0;
+
+  {
+    // decompress base chunks
+    file.seek(baseChunksAddr);
+    auto result = reader.decompress(file, buffer.data(), CHUNK_BUFFER_SIZE);
+    if (!result.first) {
+      throw runtime_error("Base chunk decompression error");
+    }
+
+    if (result.second % Chunk::CHUNK_SIZE_IN_ROM != 0) {
+      throw runtime_error("Inconsistent base chunk data");
+    }
+
+    m_chunkCount = result.second / Chunk::CHUNK_SIZE_IN_ROM;
+    total += result.second;
+  }
+
+  {
+    // decompress extended chunks
+    file.seek(extChunksAddr);
+    auto result = reader.decompress(file, buffer.data() + total, CHUNK_BUFFER_SIZE - total);
+    if (!result.first) {
+      throw runtime_error("Extended chunk decompression error");
+    }
+
+    if (result.second % Chunk::CHUNK_SIZE_IN_ROM != 0) {
+      throw runtime_error("Inconsistent extended chunk data");
+    }
+
+    m_chunkCount += result.second / Chunk::CHUNK_SIZE_IN_ROM;
+    m_chunks = new Chunk[m_chunkCount];
+
+    for (size_t i = 0; i < m_chunkCount; i++) {
+      m_chunks[i].fromSegaFormat(&buffer[i * Chunk::CHUNK_SIZE_IN_ROM]);
+    }
+  }
+
+  LOG() << "Chunk count: " << m_chunkCount << " (total: " << total << " bytes)";
 }
 
 void Sonic3Level::loadMap(Rom& rom, uint32_t mapAddr)

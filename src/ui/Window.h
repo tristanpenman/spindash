@@ -10,8 +10,8 @@ class QPushButton;
 class QStatusBar;
 class QCloseEvent;
 
-class BlockInspector;
 class ChunkInspector;
+class BlockInspector;
 class Game;
 class Level;
 class LevelSelect;
@@ -20,7 +20,7 @@ class PaletteInspector;
 class PatternInspector;
 class Rom;
 class RomInfo;
-class TileEditor;
+class ChunkEditor;
 
 class Window : public QMainWindow
 {
@@ -54,12 +54,12 @@ public slots:
   // view/inspectors
   void showPaletteInspector();
   void showPatternInspector();
-  void showChunkInspector();
   void showBlockInspector();
+  void showChunkInspector();
 
   // edit
   void showPatternEditor();
-  void showTileEditor();
+  void showChunkEditor();
 
   // tools
   void showRomInfo();
@@ -75,7 +75,7 @@ private slots:
   void undosRedosChanged(size_t undos, size_t redos);
   void mapModified();
   void patternModified();
-  void tilesModified();
+  void chunksModified();
 
 private:
   bool trySaveRom();
@@ -93,8 +93,8 @@ private:
   LevelSelect* m_levelSelect;
   PaletteInspector* m_paletteInspector;
   PatternInspector* m_patternInspector;
-  ChunkInspector* m_chunkInspector;
   BlockInspector* m_blockInspector;
+  ChunkInspector* m_chunkInspector;
   RomInfo* m_romInfo;
 
   // editor
@@ -109,7 +109,7 @@ private:
   QAction* m_undoAction;
   QAction* m_redoAction;
   QAction* m_patternEditorAction;
-  QAction* m_tileEditorAction;
+  QAction* m_chunkEditorAction;
   QAction* m_actualSizeAction;
   QAction* m_zoomInAction;
   QAction* m_zoomOutAction;

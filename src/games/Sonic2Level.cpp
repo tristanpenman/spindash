@@ -1,8 +1,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "../Block.h"
 #include "../Chunk.h"
+#include "../Block.h"
 #include "../KosinskiReader.h"
 #include "../Logger.h"
 #include "../Map.h"
@@ -25,21 +25,21 @@ Sonic2Level::Sonic2Level(Rom& rom,
                          uint32_t sonicPaletteAddr,
                          uint32_t levelPalettesAddr,
                          uint32_t patternsAddr,
-                         uint32_t chunksAddr,
                          uint32_t blocksAddr,
+                         uint32_t chunksAddr,
                          uint32_t mapAddr)
   : m_palettes(nullptr)
   , m_patterns(nullptr)
-  , m_chunks(nullptr)
+  , m_blocks(nullptr)
   , m_map(nullptr)
   , m_patternCount(0)
-  , m_chunkCount(0)
   , m_blockCount(0)
+  , m_chunkCount(0)
 {
   loadPalettes(rom, sonicPaletteAddr, levelPalettesAddr);
   loadPatterns(rom, patternsAddr);
-  loadChunks(rom, chunksAddr);
   loadBlocks(rom, blocksAddr);
+  loadChunks(rom, chunksAddr);
   loadMap(rom, mapAddr);
 }
 
@@ -70,31 +70,31 @@ Pattern& Sonic2Level::getPattern(size_t index)
   return m_patterns[index];
 }
 
+const Block& Sonic2Level::getBlock(size_t index) const
+{
+  if (index >= m_blockCount) {
+    throw runtime_error("Invalid block index " + std::to_string(index));
+  }
+
+  return m_blocks[index];
+}
+
 const Chunk& Sonic2Level::getChunk(size_t index) const
 {
   if (index >= m_chunkCount) {
-    throw runtime_error("Invalid chunk index " + std::to_string(index));
+    throw runtime_error("Invalid chunk index");
   }
 
   return m_chunks[index];
 }
 
-const Block& Sonic2Level::getBlock(size_t index) const
+Chunk& Sonic2Level::getChunk(size_t index)
 {
-  if (index >= m_blockCount) {
-    throw runtime_error("Invalid block index");
+  if (index >= m_chunkCount) {
+    throw runtime_error("Invalid chunk index");
   }
 
-  return m_blocks[index];
-}
-
-Block& Sonic2Level::getBlock(size_t index)
-{
-  if (index >= m_blockCount) {
-    throw runtime_error("Invalid block index");
-  }
-
-  return m_blocks[index];
+  return m_chunks[index];
 }
 
 Map& Sonic2Level::getMap()
@@ -148,35 +148,6 @@ void Sonic2Level::loadPatterns(Rom& rom, uint32_t patternsAddr)
   LOG() << "Pattern count: " << m_patternCount << " (" << result.second << " bytes)";
 }
 
-void Sonic2Level::loadChunks(Rom& rom, uint32_t chunksAddr)
-{
-  static constexpr size_t CHUNK_BUFFER_SIZE = 0xFFFF; // 64KB
-
-  // decompress chunks
-  auto& file = rom.getFile();
-  file.seek(chunksAddr);
-  KosinskiReader reader;
-  vector<uint8_t> buffer(CHUNK_BUFFER_SIZE);
-  auto result = reader.decompress(file, buffer.data(), CHUNK_BUFFER_SIZE);
-  if (!result.first) {
-    throw runtime_error("Chunk decompression error");
-  }
-
-  // check data
-  m_chunkCount = result.second / Chunk::CHUNK_SIZE_IN_ROM;
-  if (result.second % Chunk::CHUNK_SIZE_IN_ROM != 0) {
-    throw runtime_error("Inconsistent chunk data");
-  }
-
-  // convert chunk data
-  m_chunks = new Chunk[m_chunkCount];
-  for (size_t i = 0; i < m_chunkCount; i++) {
-    m_chunks[i].fromSegaFormat(&buffer[i * Chunk::CHUNK_SIZE_IN_ROM]);
-  }
-
-  LOG() << "Chunk count: " << m_chunkCount << " (" << result.second << " bytes)";
-}
-
 void Sonic2Level::loadBlocks(Rom& rom, uint32_t blocksAddr)
 {
   static constexpr size_t BLOCK_BUFFER_SIZE = 0xFFFF; // 64KB
@@ -197,12 +168,41 @@ void Sonic2Level::loadBlocks(Rom& rom, uint32_t blocksAddr)
     throw runtime_error("Inconsistent block data");
   }
 
+  // convert block data
   m_blocks = new Block[m_blockCount];
   for (size_t i = 0; i < m_blockCount; i++) {
     m_blocks[i].fromSegaFormat(&buffer[i * Block::BLOCK_SIZE_IN_ROM]);
   }
 
   LOG() << "Block count: " << m_blockCount << " (" << result.second << " bytes)";
+}
+
+void Sonic2Level::loadChunks(Rom& rom, uint32_t chunksAddr)
+{
+  static constexpr size_t CHUNK_BUFFER_SIZE = 0xFFFF; // 64KB
+
+  // decompress chunks
+  auto& file = rom.getFile();
+  file.seek(chunksAddr);
+  KosinskiReader reader;
+  vector<uint8_t> buffer(CHUNK_BUFFER_SIZE);
+  auto result = reader.decompress(file, buffer.data(), CHUNK_BUFFER_SIZE);
+  if (!result.first) {
+    throw runtime_error("Chunk decompression error");
+  }
+
+  // check data
+  m_chunkCount = result.second / Chunk::CHUNK_SIZE_IN_ROM;
+  if (result.second % Chunk::CHUNK_SIZE_IN_ROM != 0) {
+    throw runtime_error("Inconsistent chunk data");
+  }
+
+  m_chunks = new Chunk[m_chunkCount];
+  for (size_t i = 0; i < m_chunkCount; i++) {
+    m_chunks[i].fromSegaFormat(&buffer[i * Chunk::CHUNK_SIZE_IN_ROM]);
+  }
+
+  LOG() << "Chunk count: " << m_chunkCount << " (" << result.second << " bytes)";
 }
 
 void Sonic2Level::loadMap(Rom& rom, uint32_t mapAddr)

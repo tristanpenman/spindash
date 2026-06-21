@@ -29,8 +29,8 @@ private:
   uint32_t getLevelPalettesAddr(uint32_t levelIdx);
 
   // Kosinski compressed
-  uint32_t getBlocksAddr(uint32_t levelIdx);
   uint32_t getChunksAddr(uint32_t levelIdx);
+  uint32_t getBlocksAddr(uint32_t levelIdx);
   uint32_t getPatternsAddr(uint32_t levelIdx);
   uint32_t getTilesAddr(uint32_t levelIdx);
 
