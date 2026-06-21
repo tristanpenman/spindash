@@ -277,6 +277,8 @@ ChunkEditor::ChunkEditor(QWidget* parent, shared_ptr<Level>& level, size_t initi
   setDirty(false);
 }
 
+ChunkEditor::~ChunkEditor() = default;
+
 void ChunkEditor::closeEvent(QCloseEvent* event)
 {
   if (confirmDirtyChanges()) {

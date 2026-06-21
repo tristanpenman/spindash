@@ -63,6 +63,7 @@ class ChunkEditor : public QDialog
 
 public:
   ChunkEditor(QWidget* parent, std::shared_ptr<Level>& level, size_t initialChunkIndex);
+  ~ChunkEditor();
 
 protected:
   void closeEvent(QCloseEvent* event) override;

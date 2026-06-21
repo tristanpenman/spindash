@@ -84,6 +84,7 @@ class BlockEditor : public QDialog
 
 public:
   BlockEditor(QWidget* parent, std::shared_ptr<Level>& level);
+  ~BlockEditor();
 
 protected:
   void closeEvent(QCloseEvent* event) override;

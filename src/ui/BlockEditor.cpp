@@ -335,6 +335,8 @@ BlockEditor::BlockEditor(QWidget* parent, shared_ptr<Level>& level)
   updateCanvasSelection();
 }
 
+BlockEditor::~BlockEditor() = default;
+
 void BlockEditor::closeEvent(QCloseEvent* event)
 {
   if (confirmDirtyChanges()) {
