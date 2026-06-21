@@ -29,7 +29,6 @@ public:
   ChunkCanvas(QWidget* parent, std::shared_ptr<Level>& level, Chunk* chunks);
 
   void setChunkIndex(size_t chunkIndex);
-  void setPreviewPalette(size_t paletteIndex);
   void setSelectedBlock(uint16_t blockIndex);
   void setHorizontalFlip(bool enabled);
   void setVerticalFlip(bool enabled);
@@ -48,7 +47,6 @@ private:
   std::shared_ptr<Level> m_level;
   Chunk* m_chunks;
   size_t m_chunkIndex;
-  size_t m_previewPaletteIndex;
   uint16_t m_selectedBlockIndex;
   bool m_hFlip;
   bool m_vFlip;
@@ -84,7 +82,6 @@ private:
   std::unique_ptr<Chunk[]> m_chunks;
 
   QComboBox* m_chunkCombo;
-  QComboBox* m_paletteCombo;
   QListWidget* m_blockList;
   QCheckBox* m_hFlipCheckBox;
   QCheckBox* m_vFlipCheckBox;
@@ -93,14 +90,12 @@ private:
   QPushButton* m_discardButton;
 
   size_t m_chunkIndex;
-  size_t m_previewPaletteIndex;
   bool m_dirty;
 
 private slots:
   void blockChanged(QListWidgetItem* current, QListWidgetItem* previous);
   void discardChanges();
   void horizontalFlipChanged(int state);
-  void paletteChanged(int paletteIndex);
   void chunkChanged(int chunkIndex);
   void chunkModified();
   void saveChanges();

@@ -37,7 +37,6 @@ ChunkCanvas::ChunkCanvas(QWidget* parent, shared_ptr<Level>& level, Chunk* chunk
   , m_level(level)
   , m_chunks(chunks)
   , m_chunkIndex(0)
-  , m_previewPaletteIndex(0)
   , m_selectedBlockIndex(0)
   , m_hFlip(false)
   , m_vFlip(false)
@@ -51,12 +50,6 @@ ChunkCanvas::ChunkCanvas(QWidget* parent, shared_ptr<Level>& level, Chunk* chunk
 void ChunkCanvas::setChunkIndex(size_t chunkIndex)
 {
   m_chunkIndex = chunkIndex;
-  update();
-}
-
-void ChunkCanvas::setPreviewPalette(size_t paletteIndex)
-{
-  m_previewPaletteIndex = paletteIndex;
   update();
 }
 
@@ -179,7 +172,7 @@ void ChunkCanvas::drawBlock(QPainter& painter, const Block& block, int dx, int d
     for (int px = 0; px < 2; px++) {
       const auto& patternDesc = block.getPatternDesc(hFlip ? 1 - px : px, vFlip ? 1 - py : py);
       const auto& pattern = m_level->getPattern(patternDesc.getPatternIndex());
-      const auto& palette = m_level->getPalette(m_previewPaletteIndex);
+      const auto& palette = m_level->getPalette(patternDesc.getPaletteIndex());
       drawPattern(painter,
                   pattern,
                   palette,
@@ -214,7 +207,6 @@ ChunkEditor::ChunkEditor(QWidget* parent, shared_ptr<Level>& level, size_t initi
   , m_level(level)
   , m_chunks(new Chunk[level->getChunkCount()])
   , m_chunkCombo(nullptr)
-  , m_paletteCombo(nullptr)
   , m_blockList(nullptr)
   , m_hFlipCheckBox(nullptr)
   , m_vFlipCheckBox(nullptr)
@@ -222,7 +214,6 @@ ChunkEditor::ChunkEditor(QWidget* parent, shared_ptr<Level>& level, size_t initi
   , m_saveButton(nullptr)
   , m_discardButton(nullptr)
   , m_chunkIndex(initialChunkIndex < level->getChunkCount() ? initialChunkIndex : 0)
-  , m_previewPaletteIndex(0)
   , m_dirty(false)
 {
   setModal(false);
@@ -239,12 +230,6 @@ ChunkEditor::ChunkEditor(QWidget* parent, shared_ptr<Level>& level, size_t initi
     m_chunkCombo->addItem(QString("Chunk %1").arg(i), QVariant::fromValue(i));
   }
   selectorLayout->addWidget(m_chunkCombo);
-
-  m_paletteCombo = new QComboBox();
-  for (size_t i = 0; i < m_level->getPaletteCount(); i++) {
-    m_paletteCombo->addItem(QString("Palette %1").arg(i), QVariant::fromValue(i));
-  }
-  selectorLayout->addWidget(m_paletteCombo);
   mainLayout->addLayout(selectorLayout);
 
   auto* editorLayout = new QHBoxLayout();
@@ -277,7 +262,6 @@ ChunkEditor::ChunkEditor(QWidget* parent, shared_ptr<Level>& level, size_t initi
   mainLayout->addLayout(buttonLayout);
 
   connect(m_chunkCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(chunkChanged(int)));
-  connect(m_paletteCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(paletteChanged(int)));
   connect(m_blockList, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(blockChanged(QListWidgetItem*,QListWidgetItem*)));
   connect(m_hFlipCheckBox, SIGNAL(stateChanged(int)), this, SLOT(horizontalFlipChanged(int)));
   connect(m_vFlipCheckBox, SIGNAL(stateChanged(int)), this, SLOT(verticalFlipChanged(int)));
@@ -384,7 +368,7 @@ void ChunkEditor::drawBlockPreview(QImage& image, const Block& block, int dx, in
     for (int px = 0; px < 2; px++) {
       const auto& patternDesc = block.getPatternDesc(static_cast<uint8_t>(px), static_cast<uint8_t>(py));
       const auto& pattern = m_level->getPattern(patternDesc.getPatternIndex());
-      const auto& palette = m_level->getPalette(m_previewPaletteIndex);
+      const auto& palette = m_level->getPalette(patternDesc.getPaletteIndex());
       drawPattern(image,
                   pattern,
                   palette,
@@ -440,16 +424,6 @@ void ChunkEditor::discardChanges()
 void ChunkEditor::horizontalFlipChanged(int state)
 {
   m_canvas->setHorizontalFlip(state == Qt::Checked);
-}
-
-void ChunkEditor::paletteChanged(int paletteIndex)
-{
-  m_previewPaletteIndex = static_cast<size_t>(paletteIndex);
-  m_canvas->setPreviewPalette(m_previewPaletteIndex);
-  populateBlockSelector();
-  if (m_blockList->count() > 0) {
-    m_blockList->setCurrentRow(0);
-  }
 }
 
 void ChunkEditor::chunkChanged(int chunkIndex)
