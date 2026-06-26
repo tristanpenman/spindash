@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
-project(chaos-qt VERSION 1.0 LANGUAGES CXX)
+project(spindash VERSION 1.0 LANGUAGES CXX)
 
 set(COPYRIGHT "Copyright (c) 2026 Tristan Penman")
-set(IDENTIFIER "com.tristanpenman.chaos-qt")
+set(IDENTIFIER "com.tristanpenman.spindash")
 
 # Force out-of-source builds
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -124,38 +124,38 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Widgets REQUIRED)
 
 if (WIN32)
-    add_executable(Chaos WIN32 ${PROJECT_SOURCES} "${CMAKE_CURRENT_SOURCE_DIR}/res/Chaos.rc")
+    add_executable(SpinDash WIN32 ${PROJECT_SOURCES} "${CMAKE_CURRENT_SOURCE_DIR}/res/SpinDash.rc")
 elseif (APPLE)
-    set(MACOSX_BUNDLE_ICON_FILE "Chaos.icns")
+    set(MACOSX_BUNDLE_ICON_FILE "SpinDash.icns")
 
-    set(APP_ICON_MACOS "${CMAKE_CURRENT_SOURCE_DIR}/res/Chaos.icns")
+    set(APP_ICON_MACOS "${CMAKE_CURRENT_SOURCE_DIR}/res/SpinDash.icns")
     set_source_files_properties(${APP_ICON_MACOS} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
 
-    add_executable(Chaos MACOSX_BUNDLE ${PROJECT_SOURCES} ${APP_ICON_MACOS})
+    add_executable(SpinDash MACOSX_BUNDLE ${PROJECT_SOURCES} ${APP_ICON_MACOS})
 else()
-    add_executable(Chaos ${PROJECT_SOURCES})
+    add_executable(SpinDash ${PROJECT_SOURCES})
 endif()
 
 if(MSVC)
-    target_compile_options(Chaos PRIVATE /W4 /WX)
+    target_compile_options(SpinDash PRIVATE /W4 /WX)
 else()
-    target_compile_options(Chaos PRIVATE -Wall -Wextra -pedantic -Werror)
+    target_compile_options(SpinDash PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
 
-set_target_properties(Chaos PROPERTIES
+set_target_properties(SpinDash PROPERTIES
     AUTOMOC ON
     AUTORCC ON
     AUTOUIC ON
 )
 
-target_link_libraries(Chaos PRIVATE
+target_link_libraries(SpinDash PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 if(WIN32)
-    qt_deploy_runtime(Chaos)
+    qt_deploy_runtime(SpinDash)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -173,15 +173,15 @@ set(TEST_SOURCES
     test/TestKosinskiWriter.cpp
 )
 
-add_executable(ChaosTest
+add_executable(SpinDashTest
     ${TEST_SOURCES})
 
-target_link_libraries(ChaosTest PRIVATE
+target_link_libraries(SpinDashTest PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     GTest::gtest_main
 )
 
 if(WIN32)
-    qt_deploy_runtime(ChaosTest)
+    qt_deploy_runtime(SpinDashTest)
 endif()

@@ -45,7 +45,7 @@ using namespace std;
 namespace {
 constexpr int MaxRecentRoms = 10;
 constexpr const char* SettingsOrganization = "Tristan Penman";
-constexpr const char* SettingsApplication = "Chaos";
+constexpr const char* SettingsApplication = "SpinDash";
 constexpr const char* RecentRomsKey = "recentRoms";
 }
 
@@ -83,7 +83,7 @@ Window::Window()
   , m_levelIdx(0)
   , m_hasUnsavedChanges(false)
 {
-  setWindowTitle("Chaos");
+  setWindowTitle("SpinDash");
   setMinimumSize(320, 240);
   setAttribute(Qt::WA_AcceptTouchEvents, false);
 

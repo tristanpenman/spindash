@@ -1,8 +1,10 @@
-# Chaos Qt
+# _SpinDash_
 
-A level editor for Sonic The Hedgehog Mega Drive / Genesis ROMs.
+A level editor for Sonic The Hedgehog on Sega Mega Drive and Genesis.
 
-This is a C++ port of Brett Kosinski's [Chaos level editor](https://github.com/fancypantalons/chaos). It can be used to modify Sonic The Hedgehog 2 ROM files. It can also be used to view levels from Sonic The Hedgehog 3 ROMs.
+## Background
+
+This project began as a C++ port of Brett Kosinski's [Chaos](https://github.com/fancypantalons/chaos) level editor, which allowed modification of levels directly within a Sonic The Hedgehog 2 ROM file. It can also be used to view levels from Sonic The Hedgehog 3 ROMs.
 
 Here's a screenshot of the app being used to edit Metropolis Zone, Act 1 from Sonic The Hedgehog 2:
 
@@ -12,13 +14,9 @@ Levels can also be zoomed in and out while editing, as seen in this screenshot o
 
 ![Editing Hill Top Zone, from Sonic The Hedgehog 2](./doc/hilltop.png)
 
-## Progress
-
-The version of the code you're looking at now is a partially complete C++ / Qt port.
-
 ## Dependencies
 
-Building Chaos requires Qt 5 or 6 development tools to be installed, as well as CMake.
+Building _SpinDash_ requires Qt 5 or 6 development tools to be installed, as well as CMake.
 
 On Ubuntu:
 
@@ -36,8 +34,8 @@ On macOS, CMake and Qt can be installed using [homebrew](https://brew.sh/):
 
 Once you have Qt and CMake installed, the basic build steps are as follows:
 
-    git clone --recurse-submodules https://github.com/tristanpenman/chaos.git
-    cd chaos/qt
+    git clone --recurse-submodules https://github.com/tristanpenman/spindash.git
+    cd spindash
     mkdir build
     cd build
     cmake ..
@@ -45,7 +43,7 @@ Once you have Qt and CMake installed, the basic build steps are as follows:
 
 This will compile both the main application and a test suite.
 
-On macOS, this will build an application bundle called `Chaos.app`. The test suite is a single binary called `ChaosTest`.
+On macOS, this will build an application bundle called `SpinDash.app`. The test suite is a single binary called `SpinDashTest`.
 
 ## Documentation
 
@@ -55,7 +53,7 @@ Included in the [doc](./doc) directory is Brett Kosinski's [write up](./doc/kosi
 
 ### Nemesis compression
 
-The other compression algorithm commonly used in Sonic The Hedgehog games on Mega Drive / Genesis is [Nemesis compression](https://segaretro.org/Nemesis_compression), named after the individual who first reverse engineered it.
+The other compression algorithm commonly used in Sonic The Hedgehog games on Mega Drive and Genesis is [Nemesis compression](https://segaretro.org/Nemesis_compression), named after the individual who first reverse engineered it.
 
 ## License
 

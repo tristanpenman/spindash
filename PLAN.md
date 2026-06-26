@@ -14,7 +14,7 @@
   - Sprite preview support
     - Implement nemesis de-/compression
 - New functionality
-  - Sonic 2 disassembly support
+  - Sonic 2 disassembly support (**in progress**)
   - Sonic and Knuckles disassembly support
   - Sonic 3 and Knuckles disassembly support
   - Sonic 1 disassembly support
