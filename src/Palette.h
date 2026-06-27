@@ -27,15 +27,17 @@ public:
     uint8_t b;
 
     void fromSegaFormat(char bytes[BYTES_PER_COLOR]);
+    void toSegaFormat(char bytes[BYTES_PER_COLOR]) const;
   };
 
   Palette();
 
   void fromSegaFormat(char bytes[PALETTE_SIZE_IN_ROM]);
+  void toSegaFormat(char bytes[PALETTE_SIZE_IN_ROM]) const;
 
   size_t getColorCount() const;
   const Color& getColor(size_t index) const;
-  void setColor(size_t index, Color& color);
+  void setColor(size_t index, const Color& color);
 
 private:
   Palette(const Palette&) = delete;

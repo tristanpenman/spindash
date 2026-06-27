@@ -29,6 +29,7 @@
 #include "BlockInspector.h"
 #include "LevelSelect.h"
 #include "MapEditor.h"
+#include "PaletteEditor.h"
 #include "PaletteInspector.h"
 #include "PatternEditor.h"
 #include "PatternInspector.h"
@@ -65,6 +66,7 @@ Window::Window()
   , m_exportPngAction(nullptr)
   , m_undoAction(nullptr)
   , m_redoAction(nullptr)
+  , m_paletteEditorAction(nullptr)
   , m_patternEditorAction(nullptr)
   , m_blockEditorAction(nullptr)
   , m_chunkEditorAction(nullptr)
@@ -346,6 +348,17 @@ void Window::showPatternEditor()
   editor.exec();
 }
 
+void Window::showPaletteEditor()
+{
+  if (!m_level) {
+    return;
+  }
+
+  PaletteEditor editor(this, m_level);
+  connect(&editor, SIGNAL(paletteModified()), this, SLOT(paletteModified()));
+  editor.exec();
+}
+
 void Window::showBlockEditor()
 {
   if (!m_level) {
@@ -527,6 +540,7 @@ void Window::levelSelected(int levelIdx)
 
   m_exportBinaryAction->setEnabled(true);
   m_exportPngAction->setEnabled(true);
+  m_paletteEditorAction->setEnabled(true);
   m_patternEditorAction->setEnabled(true);
   m_blockEditorAction->setEnabled(true);
   m_chunkEditorAction->setEnabled(true);
@@ -571,6 +585,23 @@ void Window::undosRedosChanged(size_t undos, size_t redos)
 
 void Window::mapModified()
 {
+  m_hasUnsavedChanges = true;
+}
+
+void Window::paletteModified()
+{
+  if (m_patternInspector) {
+    m_patternInspector->refresh();
+  }
+  if (m_blockInspector) {
+    m_blockInspector->refresh();
+  }
+  if (m_chunkInspector) {
+    m_chunkInspector->refresh();
+  }
+  if (m_mapEditor) {
+    m_mapEditor->refreshChunks();
+  }
   m_hasUnsavedChanges = true;
 }
 
@@ -822,6 +853,10 @@ void Window::createEditMenu()
   m_redoAction->setDisabled(true);
   connect(m_redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 
+  m_paletteEditorAction = new QAction(tr("Palette Editor..."));
+  m_paletteEditorAction->setDisabled(true);
+  connect(m_paletteEditorAction, SIGNAL(triggered()), this, SLOT(showPaletteEditor()));
+
   m_patternEditorAction = new QAction(tr("8x8 Pattern Editor..."));
   m_patternEditorAction->setDisabled(true);
   connect(m_patternEditorAction, SIGNAL(triggered()), this, SLOT(showPatternEditor()));
@@ -837,6 +872,7 @@ void Window::createEditMenu()
   editMenu->addAction(m_undoAction);
   editMenu->addAction(m_redoAction);
   editMenu->addSeparator();
+  editMenu->addAction(m_paletteEditorAction);
   editMenu->addAction(m_patternEditorAction);
   editMenu->addAction(m_blockEditorAction);
   editMenu->addAction(m_chunkEditorAction);

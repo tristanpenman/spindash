@@ -92,6 +92,14 @@ ChunkSelector::ChunkSelector(QWidget *parent, QPixmap** chunks, size_t chunkCoun
   m_view->setMouseTracking(true);
 }
 
+void ChunkSelector::refresh()
+{
+  for (size_t i = 0; i < m_chunkCount; i++) {
+    m_chunkItems[i]->setPixmap(*m_chunks[i]);
+  }
+  m_selected->setPixmap(*m_chunks[m_selectedChunk]);
+}
+
 bool ChunkSelector::eventFilter(QObject *object, QEvent *ev)
 {
   if (object != m_view->viewport()) {

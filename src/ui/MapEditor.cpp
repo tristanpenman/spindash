@@ -34,6 +34,7 @@ using namespace std;
 MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
   : QWidget(parent)
   , m_level(level)
+  , m_chunkSelector(nullptr)
   , m_highlightX(-1)
   , m_highlightY(-1)
   , m_selectedChunk(0)
@@ -90,9 +91,9 @@ MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
   new ZoomSupport(m_view);
 
   // selector
-  auto chunkSelector = new ChunkSelector(this, m_chunks, chunkCount);
-  hbox->addWidget(chunkSelector);
-  connect(chunkSelector, SIGNAL(chunkSelected(int)), this, SLOT(chunkSelected(int)));
+  m_chunkSelector = new ChunkSelector(this, m_chunks, chunkCount);
+  hbox->addWidget(m_chunkSelector);
+  connect(m_chunkSelector, SIGNAL(chunkSelected(int)), this, SLOT(chunkSelected(int)));
 
   // allow map to grow but chunk selector remains the same size
   hbox->setStretch(0, 1);
@@ -164,6 +165,7 @@ void MapEditor::refreshChunks()
   for (size_t i = 0; i < chunkCount; i++) {
     drawChunk(*m_chunks[i], i);
   }
+  m_chunkSelector->refresh();
 
   const auto& map = m_level->getMap();
   for (int y = 0; y < map.getHeight(); y++) {

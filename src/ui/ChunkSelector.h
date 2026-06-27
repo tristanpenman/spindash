@@ -19,6 +19,8 @@ class ChunkSelector : public QWidget
 public:
   ChunkSelector(QWidget *parent, QPixmap** chunks, size_t chunkCount);
 
+  void refresh();
+
 protected:
   bool eventFilter(QObject *object, QEvent *ev) override;
 

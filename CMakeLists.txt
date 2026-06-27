@@ -96,6 +96,8 @@ set(PROJECT_SOURCES
     src/ui/LevelSelect.h
     src/ui/MapEditor.cpp
     src/ui/MapEditor.h
+    src/ui/PaletteEditor.cpp
+    src/ui/PaletteEditor.h
     src/ui/PaletteInspector.cpp
     src/ui/PaletteInspector.h
     src/ui/PatternEditor.cpp

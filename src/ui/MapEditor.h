@@ -11,6 +11,7 @@ class QGraphicsView;
 class QPixmap;
 
 class Block;
+class ChunkSelector;
 class Command;
 class Level;
 class Palette;
@@ -60,6 +61,7 @@ private:
   QGraphicsView* m_view;
   QGraphicsPixmapItem** m_tiles;
   QPixmap** m_chunks;
+  ChunkSelector* m_chunkSelector;
   Rectangle* m_highlight;
 
   int m_highlightX;

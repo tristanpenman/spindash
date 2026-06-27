@@ -19,6 +19,7 @@ class Game;
 class Level;
 class LevelSelect;
 class MapEditor;
+class PaletteEditor;
 class PaletteInspector;
 class PatternInspector;
 class Rom;
@@ -65,6 +66,7 @@ public slots:
 
   // edit
   void showBlockEditor();
+  void showPaletteEditor();
   void showPatternEditor();
   void showChunkEditor();
 
@@ -81,6 +83,7 @@ private slots:
   void noTile();
   void undosRedosChanged(size_t undos, size_t redos);
   void mapModified();
+  void paletteModified();
   void blocksModified();
   void patternModified();
   void chunksModified();
@@ -122,6 +125,7 @@ private:
   QAction* m_exportPngAction;
   QAction* m_undoAction;
   QAction* m_redoAction;
+  QAction* m_paletteEditorAction;
   QAction* m_patternEditorAction;
   QAction* m_blockEditorAction;
   QAction* m_chunkEditorAction;
