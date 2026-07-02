@@ -12,6 +12,7 @@
 #include "../Rom.h"
 
 #include "Sonic2Level.h"
+#include "Sonic2RingLayout.h"
 
 #undef LOG
 #define LOG Logger("Sonic2Level")
@@ -28,7 +29,9 @@ Sonic2Level::Sonic2Level(Rom& rom,
                          uint32_t patternsAddr,
                          uint32_t blocksAddr,
                          uint32_t chunksAddr,
-                         uint32_t mapAddr)
+                         uint32_t mapAddr,
+                         uint32_t ringsAddr,
+                         size_t ringsSize)
   : m_palettes(nullptr)
   , m_patterns(nullptr)
   , m_blocks(nullptr)
@@ -43,13 +46,15 @@ Sonic2Level::Sonic2Level(Rom& rom,
   loadBlocks(rom, blocksAddr);
   loadChunks(rom, chunksAddr);
   loadMap(rom, mapAddr);
+  loadRings(rom, ringsAddr, ringsSize);
 }
 
 Sonic2Level::Sonic2Level(const vector<char>& paletteData,
                          const vector<uint8_t>& patternData,
                          const vector<uint8_t>& blockData,
                          const vector<uint8_t>& chunkData,
-                         const vector<uint8_t>& mapData)
+                         const vector<uint8_t>& mapData,
+                         const vector<uint8_t>& ringData)
   : m_palettes(nullptr)
   , m_patterns(nullptr)
   , m_blocks(nullptr)
@@ -64,6 +69,9 @@ Sonic2Level::Sonic2Level(const vector<char>& paletteData,
   loadBlocks(blockData);
   loadChunks(chunkData);
   loadMap(mapData);
+  if (!ringData.empty()) {
+    loadRings(ringData);
+  }
 }
 
 Sonic2Level::~Sonic2Level()
@@ -150,6 +158,11 @@ Chunk& Sonic2Level::getChunk(size_t index)
 Map& Sonic2Level::getMap()
 {
   return *m_map;
+}
+
+const vector<RingGroup>& Sonic2Level::getRingGroups() const
+{
+  return m_ringGroups;
 }
 
 void Sonic2Level::loadPalettes(Rom& rom, uint32_t characterPaletteAddr, uint32_t levelPalettesAddr)
@@ -311,4 +324,17 @@ void Sonic2Level::loadMap(const vector<uint8_t>& data)
   }
 
   m_map = new Map(MAP_LAYERS, MAP_WIDTH, MAP_HEIGHT, const_cast<uint8_t*>(data.data()));
+}
+
+void Sonic2Level::loadRings(Rom& rom, uint32_t ringsAddr, size_t ringsSize)
+{
+  const auto bytes = rom.readBytes(ringsAddr, ringsSize);
+  vector<uint8_t> data(bytes.begin(), bytes.end());
+  loadRings(data);
+}
+
+void Sonic2Level::loadRings(const vector<uint8_t>& data)
+{
+  m_ringGroups = Sonic2RingLayout::read(data);
+  LOG() << "Ring group count: " << m_ringGroups.size();
 }

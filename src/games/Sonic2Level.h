@@ -23,12 +23,15 @@ public:
               uint32_t patternsAddr,
               uint32_t blocksAddr,
               uint32_t chunksAddr,
-              uint32_t mapAddr);
+              uint32_t mapAddr,
+              uint32_t ringsAddr,
+              size_t ringsSize);
   Sonic2Level(const std::vector<char>& paletteData,
               const std::vector<uint8_t>& patternData,
               const std::vector<uint8_t>& blockData,
               const std::vector<uint8_t>& chunkData,
-              const std::vector<uint8_t>& mapData);
+              const std::vector<uint8_t>& mapData,
+              const std::vector<uint8_t>& ringData = {});
   ~Sonic2Level() override;
 
   size_t getPaletteCount() const override;
@@ -48,6 +51,7 @@ public:
   Chunk& getChunk(size_t index) override;
 
   Map& getMap() override;
+  const std::vector<RingGroup>& getRingGroups() const override;
 
 private:
   Sonic2Level(const Sonic2Level&) = delete;
@@ -63,12 +67,15 @@ private:
   void loadChunks(const std::vector<uint8_t>& data);
   void loadMap(Rom& rom, uint32_t mapAddr);
   void loadMap(const std::vector<uint8_t>& data);
+  void loadRings(Rom& rom, uint32_t ringsAddr, size_t ringsSize);
+  void loadRings(const std::vector<uint8_t>& data);
 
   Palette* m_palettes;
   Pattern* m_patterns;
   Block* m_blocks;
   Chunk* m_chunks;
   Map* m_map;
+  std::vector<RingGroup> m_ringGroups;
 
   size_t m_patternCount;
   size_t m_blockCount;

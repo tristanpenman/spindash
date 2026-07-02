@@ -11,6 +11,7 @@
 #include "Sonic2.h"
 #include "Sonic2Level.h"
 
+#include <algorithm>
 #include <QBuffer>
 
 #undef LOG
@@ -27,6 +28,9 @@ static constexpr uint32_t levelDataDir = 0x42594;               // Level data po
 static constexpr uint32_t levelDataDirEntrySize = 12;           // Each pointer is 4 bytes, total of 3 pointers
 static constexpr uint32_t levelPaletteDir = 0x2782;             // Directory of palette pointers
 static constexpr uint32_t sonicTailsPaletteAddr = 0x29E2;       // Default palette used for Sonic and Tails
+static constexpr uint32_t ringLayoutDirAddrLoc = 0x172D0;       // Pointer to directory of ring layout offsets
+static constexpr uint32_t ringLayoutDirEntryCount = 34;
+static constexpr uint32_t maxRingLayoutSize = 0x10000;
 
 Sonic2::Sonic2(shared_ptr<Rom>& rom)
   : m_rom(rom)
@@ -80,6 +84,7 @@ shared_ptr<Level> Sonic2::loadLevel(unsigned int levelIdx)
   const auto blocksAddr = getBlocksAddr(levelIdx);
   const auto chunksAddr = getChunksAddr(levelIdx);
   const auto mapAddr = getTilesAddr(levelIdx);
+  const auto ringsRegion = getRingsRegion(levelIdx);
 
   LOG() << "Character palette addr: 0x" << hex << characterPaletteAddr;
   LOG() << "Level palettes addr: 0x" << hex << levelPalettesAddr;
@@ -87,6 +92,7 @@ shared_ptr<Level> Sonic2::loadLevel(unsigned int levelIdx)
   LOG() << "Blocks addr: 0x" << hex << blocksAddr;
   LOG() << "Chunks addr: 0x" << hex << chunksAddr;
   LOG() << "Map addr: 0x" << hex << mapAddr;
+  LOG() << "Rings addr: 0x" << hex << ringsRegion.address;
 
   return make_shared<Sonic2Level>(*m_rom,
                                   characterPaletteAddr,
@@ -94,7 +100,9 @@ shared_ptr<Level> Sonic2::loadLevel(unsigned int levelIdx)
                                   patternsAddr,
                                   blocksAddr,
                                   chunksAddr,
-                                  mapAddr);
+                                  mapAddr,
+                                  ringsRegion.address,
+                                  ringsRegion.size);
 }
 
 bool Sonic2::canRelocateLevels() const
@@ -410,4 +418,36 @@ uint32_t Sonic2::getTilesAddr(unsigned int levelIdx)
   const uint16_t levelOffset = m_rom->read16BitAddr(levelOffsetLoc);
 
   return levelLayoutDirAddr + levelOffset;
+}
+
+Sonic2::DataRegion Sonic2::getRingsRegion(uint32_t levelIdx)
+{
+  const uint32_t levelSelectEntry = levelSelectAddr + levelIdx * 2;
+  const uint32_t zoneIdx = m_rom->readByte(levelSelectEntry);
+  const uint32_t actIdx = m_rom->readByte(levelSelectEntry + 1);
+  const uint32_t entryIdx = zoneIdx * 2 + actIdx;
+  if (entryIdx >= ringLayoutDirEntryCount) {
+    throw runtime_error("Invalid Sonic 2 ring layout index");
+  }
+
+  const uint32_t directoryAddr = m_rom->read32BitAddr(ringLayoutDirAddrLoc);
+  const uint16_t selectedOffset = m_rom->read16BitAddr(directoryAddr + entryIdx * 2);
+  const uint32_t ringsAddr = directoryAddr + selectedOffset;
+  if (static_cast<size_t>(directoryAddr) + ringLayoutDirEntryCount * 2 > m_rom->getSize() ||
+      ringsAddr >= m_rom->getSize()) {
+    throw runtime_error("Sonic 2 ring layout directory is outside the ROM");
+  }
+
+  uint32_t endAddr = static_cast<uint32_t>(min(
+      m_rom->getSize(),
+      static_cast<size_t>(ringsAddr) + maxRingLayoutSize));
+  for (uint32_t i = 0; i < ringLayoutDirEntryCount; i++) {
+    const uint16_t offset = m_rom->read16BitAddr(directoryAddr + i * 2);
+    const uint32_t candidate = directoryAddr + offset;
+    if (candidate > ringsAddr && candidate < endAddr) {
+      endAddr = candidate;
+    }
+  }
+
+  return {ringsAddr, endAddr - ringsAddr};
 }

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <vector>
+
+#include "RingGroup.h"
 
 class Chunk;
 class Block;
@@ -33,4 +36,10 @@ public:
   virtual Chunk& getChunk(size_t index) = 0;
 
   virtual Map& getMap() = 0;
+
+  virtual const std::vector<RingGroup>& getRingGroups() const
+  {
+    static const std::vector<RingGroup> empty;
+    return empty;
+  }
 };

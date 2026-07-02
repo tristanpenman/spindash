@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 
@@ -23,6 +24,11 @@ public:
   bool save(unsigned int levelIdx, Level&) override;
 
 private:
+  struct DataRegion {
+    uint32_t address;
+    size_t size;
+  };
+
   uint32_t getDataAddress(uint32_t levelIdx, uint32_t entryOffset);
 
   // uncompressed
@@ -34,6 +40,7 @@ private:
   uint32_t getBlocksAddr(uint32_t levelIdx);
   uint32_t getPatternsAddr(uint32_t levelIdx);
   uint32_t getTilesAddr(uint32_t levelIdx);
+  DataRegion getRingsRegion(uint32_t levelIdx);
 
   std::shared_ptr<Rom> m_rom;
 };

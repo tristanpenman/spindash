@@ -72,6 +72,7 @@ set(PROJECT_SOURCES
     src/PatternDesc.h
     src/Rom.cpp
     src/Rom.h
+    src/RingGroup.h
     src/commands/PencilCommand.cpp
     src/commands/PencilCommand.h
     src/games/Sonic2.cpp
@@ -80,6 +81,8 @@ set(PROJECT_SOURCES
     src/games/Sonic2Disassembly.h
     src/games/Sonic2Level.cpp
     src/games/Sonic2Level.h
+    src/games/Sonic2RingLayout.cpp
+    src/games/Sonic2RingLayout.h
     src/games/Sonic3.cpp
     src/games/Sonic3.h
     src/games/Sonic3Level.cpp
@@ -171,10 +174,14 @@ set(TEST_SOURCES
     src/KosinskiReader.cpp
     src/KosinskiWriter.h
     src/KosinskiWriter.cpp
+    src/games/Sonic2RingLayout.h
+    src/games/Sonic2RingLayout.cpp
+    src/RingGroup.h
     test/data/ehz1.kosinski.h
     test/data/ehz1.raw.h
     test/TestKosinskiReader.cpp
     test/TestKosinskiWriter.cpp
+    test/TestSonic2RingLayout.cpp
 )
 
 add_executable(SpinDashTest

@@ -1,11 +1,14 @@
 #include <QApplication>
+#include <QBrush>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QImage>
 #include <QMouseEvent>
 #include <QPixmap>
+#include <QPen>
 #include <QScrollBar>
 
 #include "../Chunk.h"
@@ -66,6 +69,17 @@ MapEditor::MapEditor(QWidget *parent, shared_ptr<Level>& level)
       tile = m_scene->addPixmap(*m_chunks[map.getValue(0, x, y)]);
       tile->setTransformationMode(Qt::SmoothTransformation);
       tile->setPos(x * 128, y * 128);
+    }
+  }
+
+  const QPen ringPen(QColor(255, 224, 0), 2);
+  const QBrush ringBrush(QColor(255, 224, 0, 48));
+  for (const auto& group : m_level->getRingGroups()) {
+    for (uint8_t i = 0; i < group.count; i++) {
+      const int x = group.x + (group.direction == RingDirection::Horizontal ? i * 0x18 : 0);
+      const int y = group.y + (group.direction == RingDirection::Vertical ? i * 0x18 : 0);
+      auto* ring = m_scene->addRect(x - 8, y - 8, 16, 16, ringPen, ringBrush);
+      ring->setToolTip(QString("Ring (%1, %2)").arg(x).arg(y));
     }
   }
 
